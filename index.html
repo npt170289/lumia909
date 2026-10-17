@@ -1,0 +1,29 @@
+  el.scrollTop=el.scrollHeight;
+}
+
+document.getElementById('btnLogin').onclick=async()=>{
+  try{
+    addLog("🔄 Xác thực Pi SANDBOX cho App MAINNET: "+window.location.hostname);
+    let auth=await Pi.authenticate(['username','payments'],(p)=>{addLog("Incomplete: "+p.identifier)});
+    addLog("✅ LOGIN SANDBOX (cho App MAINNET): "+auth.user.uid+" @"+auth.user.username);
+  }catch(e){addLog("❌ LỖI: "+e.message)}
+};
+
+document.getElementById('btnPay').onclick=async()=>{
+  addLog("🚀 BẮT ĐẦU BẮN 5 UID MAINNET - DOMAIN: "+window.location.hostname+" - PAY TEST...");
+  for(let i=0;i<TARGET_UIDS.length;i++){
+    let u=TARGET_UIDS[i];
+    addLog(`⏳ [${i+1}/5] @${u.username} (${u.uid.substring(0,8)}...)`);
+    try{
+      let r=await fetch('/api/a2u',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({uid:u.uid,username:u.username,amount:1})});
+      let res=await r.json();
+      if(r.ok) addLog(`✅ [${i+1}/5] @${u.username} THÀNH CÔNG MAINNET TEST PAY! ${JSON.stringify(res)}`);
+      else addLog(`❌ [${i+1}/5] THẤT BẠI: ${JSON.stringify(res)}`);
+    }catch(err){addLog(`❌ Lỗi mạng: ${err.message}`)}
+    await new Promise(r=>setTimeout(r,1200));
+  }
+  addLog("🎉 XONG BATCH MAINNET - SANDBOX PAY TEST! Domain: "+window.location.hostname);
+};
+</script>
+</body>
+</html>
