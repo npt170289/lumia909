@@ -3,8 +3,5 @@
     "api/a2u.js": {
       "maxDuration": 30
     }
-  },
-  "routes": [
-    { "src": "/api/a2u", "dest": "/api/a2u.js" }
-  ]
+  }
 }
