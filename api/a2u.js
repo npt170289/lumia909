@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         amount: amount || 1,
-        memo: `Lumia 909 Mainnet Sandbox Test to @${username}`,
+        memo: `Lumia 909 Sandbox Test to @${username}`,
         metadata: { target_uid: uid },
         uid: uid
       })
