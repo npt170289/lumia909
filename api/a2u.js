@@ -7,12 +7,13 @@ export default async function handler(req, res) {
   console.log(`LUMIA909 API Start - UID: ${uid}, Key exists: ${!!PI_API_KEY}`);
 
   if (!PI_API_KEY) {
-    console.error("❌ LỖI: Thiếu biến môi trường PI_API_KEY trên Vercel!");
     return res.status(500).json({ error: "Missing PI_API_KEY in Vercel settings" });
   }
   
   try {
-    const response = await fetch('https://api.sandbox.minepi.com/v2/payments', {
+    // Thử dùng endpoint chuẩn api.minepi.com nhưng bật chế độ sandbox thông qua headers hoặc payload nếu Pi yêu cầu,
+    // hoặc ép kiểu gọi fetch với timeout/agent. Ở đây ta thử gọi endpoint chuẩn v2 payments:
+    const response = await fetch('https://api.minepi.com/v2/payments', {
       method: 'POST',
       headers: {
         'Authorization': `Key ${PI_API_KEY}`,
@@ -20,22 +21,29 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         amount: amount || 1,
-        memo: `Lumia 909 Sandbox Test to @${username || 'user'}`,
+        memo: `Lumia 909 Test to @${username || 'user'}`,
         metadata: { target_uid: uid },
         uid: uid
       })
     });
     
-    const data = await response.json();
-    console.log("Pi Sandbox API Raw Response Status:", response.status, JSON.stringify(data));
+    const textData = await response.text();
+    let data;
+    try {
+      data = JSON.parse(textData);
+    } catch (err) {
+      data = { raw: textData };
+    }
+    
+    console.log("Pi API Response Status:", response.status, data);
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: "Pi Sandbox API Error", details: data });
+      return res.status(response.status).json({ error: "Pi API Error", details: data });
     }
     
     return res.status(200).json({ success: true, paymentId: data.identifier, data });
   } catch (e) {
-    console.error("❌ Ngoại lệ Catch trong a2u.js:", e.message);
-    return res.status(500).json({ error: "Internal Server Exception", message: e.message });
+    console.error("❌ Fetch Exception Detail:", e);
+    return res.status(500).json({ error: "Fetch Failed Exception", message: e.message });
   }
 }
