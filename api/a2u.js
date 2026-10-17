@@ -1,14 +1,17 @@
-// A2U SANDBOX / TESTNET HANDLER CHO LUMIA 909
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({error: 'Method not allowed'});
   
   const { uid, username, amount } = req.body;
-  const PI_API_KEY = process.env.PI_API_KEY; // API Key Sandbox của lumia909
+  const PI_API_KEY = process.env.PI_API_KEY;
+  
+  console.log(`LUMIA909 API Start - UID: ${uid}, Key exists: ${!!PI_API_KEY}`);
+
+  if (!PI_API_KEY) {
+    console.error("❌ LỖI: Thiếu biến môi trường PI_API_KEY trên Vercel!");
+    return res.status(500).json({ error: "Missing PI_API_KEY in Vercel settings" });
+  }
   
   try {
-    console.log(`LUMIA909 SANDBOX A2U Processing for UID: ${uid}`);
-
-    // DÙNG ENDPOINT SANDBOX / TESTNET THAY VÌ MAINNET
     const response = await fetch('https://api.sandbox.minepi.com/v2/payments', {
       method: 'POST',
       headers: {
@@ -24,7 +27,7 @@ export default async function handler(req, res) {
     });
     
     const data = await response.json();
-    console.log("LUMIA909 Sandbox API Response Status:", response.status, data);
+    console.log("Pi Sandbox API Raw Response Status:", response.status, JSON.stringify(data));
 
     if (!response.ok) {
       return res.status(response.status).json({ error: "Pi Sandbox API Error", details: data });
@@ -32,6 +35,7 @@ export default async function handler(req, res) {
     
     return res.status(200).json({ success: true, paymentId: data.identifier, data });
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    console.error("❌ Ngoại lệ Catch trong a2u.js:", e.message);
+    return res.status(500).json({ error: "Internal Server Exception", message: e.message });
   }
 }
