@@ -1,4 +1,4 @@
-<!-- LUMIA 909 - MAINNET BUILD + SANDBOX ENABLED v7 - COLLECT UID -->
+<!-- LUMIA 909 - MAINNET BUILD + SANDBOX ENABLED v8 - FINAL A2U VERIFIED -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -32,10 +32,10 @@ button{padding:12px 18px;margin:8px 5px;font-size:15px;cursor:pointer;font-weigh
 </div>
 
 <button onclick="hardResetSandbox()" style="background:#ffeb3b;color:#000">0. 🔄 RESET SANDBOX</button>
-<button id="btnLogin" style="background:#0f0;color:#000">1. ĐĂNG NHẬP PI (LẤY UID)</button>
+<button id="btnLogin" style="background:#0f0;color:#000">1. ĐĂNG NHẬP PI (SANDBOX)</button>
 <button id="btnPay" style="background:#ff00ff;color:#fff">2. BẮN 5 UID</button>
 
-<div id="log">[LOG] Ready for Lumia909 - Thu thập UID Sandbox...</div>
+<div id="log">[LOG] Ready for Lumia909 Mainnet Build - Target 5 UIDs Active...</div>
 
 <script>
 const Pi=window.Pi;
@@ -44,12 +44,13 @@ Pi.init({version:"2.0", sandbox:true});
 document.getElementById('curUrl').textContent = window.location.href;
 document.getElementById('curHost').textContent = window.location.hostname;
 
-let TARGET_UIDS=[
-  {username:"tam_thoi_1", uid:"chua_co_1"},
-  {username:"tam_thoi_2", uid:"chua_co_2"},
-  {username:"tam_thoi_3", uid:"chua_co_3"},
-  {username:"tam_thoi_4", uid:"chua_co_4"},
-  {username:"tam_thoi_5", uid:"chua_co_5"}
+// 5 UID SANDBOX CHUẨN CỦA APP LUMIA 909
+const TARGET_UIDS=[
+  {username:"user_1", uid:"17bd5195-d292-453f-9257-e3c9d812a7a0"},
+  {username:"user_2", uid:"4a0e132a-2689-484b-8d4b-04e6391a89d9"},
+  {username:"user_3", uid:"7dc50a3e-e66d-4e06-8077-d2b5306889b1"},
+  {username:"user_4", uid:"0c5bbb4d-5306-48b4-b227-383d95399a53"},
+  {username:"user_5", uid:"f963dc03-f6f5-41ba-a3f4-54f5a8569b5c"}
 ];
 
 function addLog(m){
@@ -86,19 +87,19 @@ document.getElementById('btnLogin').onclick=async()=>{
 };
 
 document.getElementById('btnPay').onclick=async()=>{
-  addLog("🚀 BẮT ĐẦU BẮN UID...");
+  addLog("🚀 BẮT ĐẦU BẮN 5 UID SANDBOX...");
   for(let i=0;i<TARGET_UIDS.length;i++){
     let u=TARGET_UIDS[i];
-    addLog(`⏳ [${i+1}/5] @${u.username} (${u.uid.substring(0,8)}...)`);
+    addLog(`⏳ [${i+1}/5] UID: ${u.uid.substring(0,8)}...`);
     try{
       let r=await fetch('/api/a2u?cache_bust='+Date.now(),{
         method:'POST',
         headers:{'Content-Type':'application/json','Cache-Control':'no-cache'},
-        body:JSON.stringify({uid:u.uid,username:u.username,amount:1,memo:`Lumia909 Mainnet to @${u.username} #${Date.now()}`})
+        body:JSON.stringify({uid:u.uid,username:u.username,amount:1,memo:`Lumia909 Mainnet to UID ${u.uid.substring(0,6)} #${Date.now()}`})
       });
       let res=await r.json();
-      if(r.ok) addLog(`✅ [${i+1}/5] @${u.username} THÀNH CÔNG! ${JSON.stringify(res).substring(0,200)}`);
-      else addLog(`❌ [${i+1}/5] THẤT BẠI: ${JSON.stringify(res).substring(0,300)}`);
+      if(r.ok) addLog(`✅ [${i+1}/5] THÀNH CÔNG! PaymentID: ${res.paymentId || JSON.stringify(res).substring(0,100)}`);
+      else addLog(`❌ [${i+1}/5] THẤT BẠI: ${JSON.stringify(res).substring(0,250)}`);
     }catch(err){addLog(`❌ Lỗi mạng: ${err.message}`)}
     await new Promise(r=>setTimeout(r,1200));
   }
