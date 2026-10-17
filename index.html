@@ -1,109 +1,37 @@
-<!-- LUMIA 909 - MAINNET BUILD + FORCE SANDBOX RESET v10 -->
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lumia 909 - MAINNET - SANDBOX</title>
-<script src="https://sdk.minepi.com/pi-sdk.js"></script>
-<style>
-body{font-family:monospace;background:#0a0a0a;color:#0f0;padding:15px;padding-top:50px;margin:0}
-h2{margin-top:10px;font-size:18px;line-height:1.4}
-h2 span.main{color:#fff;background:red;padding:3px 8px;border-radius:4px}
-h2 span.test{color:#000;background:#0f0;padding:3px 8px;border-radius:4px;margin-left:5px}
-button{padding:12px 18px;margin:8px 5px;font-size:15px;cursor:pointer;font-weight:bold;border-radius:6px;width:100%}
-#verify{border:1px dashed #ff0;background:#1a1a00;color:#ff0;padding:10px;margin:12px 0;font-size:12px;border-radius:6px;word-break:break-all}
-#verify b{color:#fff}
-#log{white-space:pre-wrap;background:#000;padding:12px;border:1px solid #0f0;height:400px;overflow:auto;font-size:12px;border-radius:6px}
-</style>
-</head>
-<body>
-<h2>🚀 <span class="main">MAINNET</span> Lumia 909 <span class="test">SANDBOX ENABLED</span></h2>
-<p style="color:#aaa;font-size:12px;margin:5px 0">App MAINNET - Force Reset Sandbox & Pay Test</p>
-<div id="verify">
-<b>🔍 XÁC MINH DỰ ÁN:</b><br>
-✅ App ID: <b>lumia909</b> (MAINNET)<br>
-✅ Host: <span id="curHost" style="color:#0ff"></span><br>
-✅ Current URL: <span id="curUrl" style="color:#0ff">đang tải...</span>
-</div>
-<button onclick="forceResetSandboxCache()" style="background:#ffeb3b;color:#000;margin-bottom:10px">0. 🧹 XOÁ SẠCH CACHE & RESET SANDBOX</button>
-<button id="btnLogin" style="background:#0f0;color:#000;margin-bottom:10px">1. ĐĂNG NHẬP LẠI ĐỂ TẠO SESSION MỚI</button>
-<button id="btnPay" style="background:#ff00ff;color:#fff">2. BẮN 5 UID MAINNET (TEST PAY)</button>
-<div id="log">Sẵn sàng! Hãy bấm nút '0. XOÁ SẠCH CACHE' trước khi test...</div>
-<script>
-const Pi = window.Pi;
-Pi.init({version: "2.0", sandbox: true});
-document.getElementById('curUrl').textContent = window.location.href;
-document.getElementById('curHost').textContent = window.location.hostname;
-const TARGET_UIDS = [
-  {username: "user_1", uid: "17bd5195-d292-453f-9257-e3c9d812a7a0"},
-  {username: "user_2", uid: "4a0e132a-2689-484b-8d4b-04e6391a89d9"},
-  {username: "user_3", uid: "7dc50a3e-e66d-4e06-8077-d2b5306889b1"},
-  {username: "user_4", uid: "0c5bbb4d-5306-48b4-b227-383d95399a53"},
-  {username: "user_5", uid: "f963dc03-f6f5-41ba-a3f4-54f5a8569b5c"}
-];
-function addLog(m) {
-  let el = document.getElementById('log');
-  el.textContent += "\n[" + new Date().toLocaleTimeString() + "] " + m;
-  el.scrollTop = el.scrollHeight;
-}
-async function forceResetSandboxCache() {
-  addLog("🧹 Đang kích hoạt tiến trình làm sạch triệt để...");
-  try {
-    localStorage.clear();
-    sessionStorage.clear();
-    if (window.indexedDB && window.indexedDB.databases) {
-      const dbs = await window.indexedDB.databases();
-      for (let db of dbs) {
-        window.indexedDB.deleteDatabase(db.name);
-      }
-    }
-    document.cookie.split(";").forEach(function(c) { 
-      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-    });
-    addLog("✅ Đã xóa sạch dữ liệu đệm! Đang reload lại trang...");
-  } catch (e) {
-    addLog("⚠ Lỗi nhẹ khi dọn dẹp: " + e.message);
-  }
-  setTimeout(() => {
-    const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    window.location.href = baseUrl + "?force_sandbox_reset=" + Date.now();
-  }, 1000);
-}
-document.getElementById('btnLogin').onclick = async () => {
-  try {
-    addLog("🔄 Đang xin cấp Token Sandbox mới từ Pi Server...");
-    let auth = await Pi.authenticate(['username', 'payments'], (p) => { addLog("Incomplete: " + p.identifier); });
-    addLog("----------------------------------------");
-    addLog("✅ TẠO SESSION SANDBOX MỚI THÀNH CÔNG!");
-    addLog("👉 UID CỦA BẠN: " + auth.user.uid);
-    addLog("👉 USERNAME: @" + auth.user.username);
-    addLog("----------------------------------------");
-  } catch (e) {
-    addLog("❌ LỖI LOGIN: " + e.message);
-  }
-};
 document.getElementById('btnPay').onclick = async () => {
-  addLog("🚀 BẮT ĐẦU BẮN 5 UID (VỚI SESSION SANDBOX ĐÃ MỚI)...");
+  addLog("🚀 BẮT ĐẦU TIẾN TRÌNH TỰ ĐỘNG REFRESH & BẮN API...");
+  
+  // Tự động ép refresh session ngầm trước khi gọi API
+  try {
+    let auth = await Pi.authenticate(['username', 'payments'], () => {});
+    addLog("🔄 Đã tự động làm mới Session thành công cho: @" + auth.user.username);
+  } catch (e) {
+    addLog("⚠ Cảnh báo session: " + e.message);
+  }
+
   for (let i = 0; i < TARGET_UIDS.length; i++) {
     let u = TARGET_UIDS[i];
     addLog(`⏳ [${i + 1}/5] Bắn tới UID: (${u.uid.substring(0, 8)}...)`);
     try {
-      let r = await fetch('/api/a2u?cache_bust=' + Date.now(), {
+      let r = await fetch('/api/a2u?auto_refresh=' + Date.now(), {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'Cache-Control': 'no-cache'},
         body: JSON.stringify({uid: u.uid, username: u.username, amount: 1})
       });
+      
+      // Kiểm tra nếu vẫn dính lỗi 404 thì thông báo rõ ràng lên màn hình log để xử lý gốc rễ
+      if (r.status === 404) {
+        addLog(`❌ [${i + 1}/5] LỖI 404: Vercel vẫn chưa tìm thấy đường dẫn /api/a2u.`);
+        break;
+      }
+
       let res = await r.json();
       if (r.ok) addLog(`✅ [${i + 1}/5] THÀNH CÔNG! PaymentID: ${res.paymentId || JSON.stringify(res)}`);
       else addLog(`❌ [${i + 1}/5] THẤT BẠI: ${JSON.stringify(res)}`);
     } catch (err) {
-      addLog(`❌ Lỗi mạng: ${err.message}`);
+      addLog(`❌ Lỗi kết nối: ${err.message}`);
     }
     await new Promise(r => setTimeout(r, 1200));
   }
-  addLog("🎉 HOÀN THÀNH TIẾN TRÌNH TEST!");
+  addLog("🎉 HOÀN THÀNH TIẾN TRÌNH!");
 };
-</script>
-</body>
-</html>
