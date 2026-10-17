@@ -1,4 +1,8 @@
 {
+  "version": 2,
+  "builds": [
+    { "src": "api/a2u.js", "use": "@vercel/node" }
+  ],
   "routes": [
     { "src": "/api/a2u", "dest": "/api/a2u.js" }
   ]
