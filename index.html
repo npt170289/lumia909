@@ -1,29 +1,80 @@
-  el.scrollTop=el.scrollHeight;
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumia 909 - MAINNET A2U Batch</title>
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<style>
+body{margin:0;background:#000;color:#0f0;font-family:monospace;padding:20px;padding-top:50px}
+#verify{border:2px dashed #ffeb3b;background:#111;padding:15px;margin-bottom:15px;color:#fff;line-height:1.8}
+#verify b{color:#ffeb3b}
+button{padding:12px 20px;margin:5px;border:none;border-radius:8px;font-weight:bold;cursor:pointer}
+#log{margin-top:15px;background:#0a0a0a;border:1px solid #333;padding:15px;white-space:pre-wrap;font-size:13px}
+</style>
+</head>
+<body>
+<h2>🟣 Lumia 909 - Garden Station Soul</h2>
+<div id="verify">
+✅ BUILD: <b>lumia909-mainnet.vercel.app</b> (Repo mới toanh)<br>
+✅ App ID: <b>lumia909</b> - MAINNET<br>
+✅ API Key: <b>5v9y...2n1f (đã set env PI_API_KEY)</b><br>
+✅ App Wallet: <b>GDQMZ3GHWACKVFDALX3UIHLXMWIXRBWPLQ5XI2QDE7OQFWDNGOQZR3PU</b><br>
+✅ Validation Key: <b>67416ca0...fad (đã tạo)</b><br>
+✅ Mode: <b>SANDBOX Pay Pi TEST</b> (giữ hồn Garden Station 303)<br>
+✅ Current URL: <span id="curUrl">loading...</span><br>
+✅ Host: <span id="curHost">loading...</span>
+</div>
+<button onclick="loginPi()">1. ĐĂNG NHẬP PI</button>
+<button onclick="batchPay()">2. BẮN 5 UID</button>
+<div id="log">[LOG] Ready for Lumia909 Mainnet Build...</div>
+<script>
+// === GIỮ HỒN GARDEN STATION 303 ===
+Pi.init({version:"2.0", sandbox:true});
+let piUser = null;
+const TARGET_UIDS = ["nguyenanhtuan113113","thuongsheva","phithuong07","test_uid_4","test_uid_5"];
+document.getElementById('curUrl').innerText = window.location.href;
+document.getElementById('curHost').innerText = window.location.host;
+function log(msg){
+  const el = document.getElementById('log');
+  el.innerText += "\n[" + new Date().toLocaleTimeString() + "] " + msg;
+  console.log(msg);
 }
-
-document.getElementById('btnLogin').onclick=async()=>{
+async function loginPi(){
   try{
-    addLog("🔄 Xác thực Pi SANDBOX cho App MAINNET: "+window.location.hostname);
-    let auth=await Pi.authenticate(['username','payments'],(p)=>{addLog("Incomplete: "+p.identifier)});
-    addLog("✅ LOGIN SANDBOX (cho App MAINNET): "+auth.user.uid+" @"+auth.user.username);
-  }catch(e){addLog("❌ LỖI: "+e.message)}
-};
-
-document.getElementById('btnPay').onclick=async()=>{
-  addLog("🚀 BẮT ĐẦU BẮN 5 UID MAINNET - DOMAIN: "+window.location.hostname+" - PAY TEST...");
-  for(let i=0;i<TARGET_UIDS.length;i++){
-    let u=TARGET_UIDS[i];
-    addLog(`⏳ [${i+1}/5] @${u.username} (${u.uid.substring(0,8)}...)`);
+    log("> Đang login Pi...");
+    const scopes = ['username','payments'];
+    const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+    piUser = auth.user;
+    log("> Login OK: " + piUser.username + " UID:" + piUser.uid);
+  }catch(e){ log("> Login FAIL: "+e.message); }
+}
+function onIncompletePaymentFound(payment){
+  log("> Found incomplete payment: " + payment.identifier);
+}
+async function batchPay(){
+  if(!piUser){ log("> Chưa đăng nhập!"); return; }
+  log("> Bắt đầu BATCH 5 UID cho LUMIA909 MAINNET BUILD...");
+  
+  for(let uid of TARGET_UIDS){
     try{
-      let r=await fetch('/api/a2u',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({uid:u.uid,username:u.username,amount:1})});
-      let res=await r.json();
-      if(r.ok) addLog(`✅ [${i+1}/5] @${u.username} THÀNH CÔNG MAINNET TEST PAY! ${JSON.stringify(res)}`);
-      else addLog(`❌ [${i+1}/5] THẤT BẠI: ${JSON.stringify(res)}`);
-    }catch(err){addLog(`❌ Lỗi mạng: ${err.message}`)}
-    await new Promise(r=>setTimeout(r,1200));
+      log("> Đang pay cho UID: " + uid);
+      // A2U - gọi API backend /api/a2u - backend dùng PI_API_KEY 5v9y...2n1f
+      const res = await fetch('/api/a2u', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({uid:uid, amount:0.01, memo:"Lumia909 A2U test - mainnet build + sandbox pay"})
+      });
+      const data = await res.json();
+      if(data.success){
+        log("> ✅ Pay OK cho "+uid+" Tx: "+ (data.txid || 'sandbox ok'));
+      }else{
+        log("> ❌ Pay FAIL "+uid+": "+ (data.error || 'unknown'));
+      }
+    }catch(e){ log("> ❌ Lỗi "+uid+": "+e.message); }
   }
-  addLog("🎉 XONG BATCH MAINNET - SANDBOX PAY TEST! Domain: "+window.location.hostname);
-};
+  log("> 🎉 HOÀN TẤT BATCH 5 UID - LUMIA909 MAINNET!");
+}
 </script>
 </body>
 </html>
