@@ -1,4 +1,4 @@
-<!-- LUMIA 909 - MAINNET BUILD + SANDBOX ENABLED v8 - FINAL A2U VERIFIED -->
+<!-- LUMIA 909 - MAINNET BUILD + SANDBOX ENABLED v9 -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,23 +19,23 @@ button{padding:12px 18px;margin:8px 5px;font-size:15px;cursor:pointer;font-weigh
 </head>
 <body>
 
-<h2>🟣 <span class="main">MAINNET</span> Lumia 909 <span class="test">SANDBOX ENABLED</span></h2>
+<h2>🚀 <span class="main">MAINNET</span> Lumia 909 <span class="test">SANDBOX ENABLED</span></h2>
 
-<p style="color:#aaa;font-size:12px;margin:5px 0">App MAINNET - Pay Pi TEST - Garden Soul</p>
+<p style="color:#aaa;font-size:12px;margin:5px 0">App MAINNET - Pay Pi TEST - 5 UID Chuẩn</p>
 
 <div id="verify">
 <b>🔍 XÁC MINH DỰ ÁN:</b><br>
-✅ BUILD: <b>lumia909.vercel.app</b><br>
-✅ App ID: <b>lumia909</b> - MAINNET<br>
+✅ App ID: <b>lumia909</b> (MAINNET)<br>
+✅ Build: <b>lumia909.vercel.app</b><br>
+✅ Mode: <b id="modeText">SANDBOX = Pay Pi TEST (PCT yêu cầu)</b><br>
 ✅ Current URL: <span id="curUrl" style="color:#0ff">đang tải...</span><br>
 ✅ Host: <span id="curHost" style="color:#0ff"></span>
 </div>
 
-<button onclick="hardResetSandbox()" style="background:#ffeb3b;color:#000">0. 🔄 RESET SANDBOX</button>
 <button id="btnLogin" style="background:#0f0;color:#000">1. ĐĂNG NHẬP PI (SANDBOX)</button>
-<button id="btnPay" style="background:#ff00ff;color:#fff">2. BẮN 5 UID</button>
+<button id="btnPay" style="background:#ff00ff;color:#fff">2. BẮN 5 UID MAINNET (TEST PAY)</button>
 
-<div id="log">[LOG] Ready for Lumia909 Mainnet Build - Target 5 UIDs Active...</div>
+<div id="log">Sẵn sàng MAINNET - Đang ở chế độ SANDBOX (Pay Pi Test)...</div>
 
 <script>
 const Pi=window.Pi;
@@ -44,7 +44,6 @@ Pi.init({version:"2.0", sandbox:true});
 document.getElementById('curUrl').textContent = window.location.href;
 document.getElementById('curHost').textContent = window.location.hostname;
 
-// 5 UID SANDBOX CHUẨN CỦA APP LUMIA 909
 const TARGET_UIDS=[
   {username:"user_1", uid:"17bd5195-d292-453f-9257-e3c9d812a7a0"},
   {username:"user_2", uid:"4a0e132a-2689-484b-8d4b-04e6391a89d9"},
@@ -57,52 +56,34 @@ function addLog(m){
   let el=document.getElementById('log');
   el.textContent+="\n["+new Date().toLocaleTimeString()+"] "+m;
   el.scrollTop=el.scrollHeight;
-  console.log(m);
-}
-
-function hardResetSandbox(){
-  addLog("🧹 Đang xóa cache...");
-  try{
-    localStorage.clear();
-    sessionStorage.clear();
-    if(window.indexedDB && window.indexedDB.databases){
-      window.indexedDB.databases().then(dbs=>{dbs.forEach(db=>{window.indexedDB.deleteDatabase(db.name)})});
-    }
-  }catch(e){ addLog("⚠️ Lỗi xóa: "+e.message); }
-  setTimeout(()=>{
-    window.location.href = window.location.pathname + '?clear_sandbox=' + Date.now();
-  }, 700);
 }
 
 document.getElementById('btnLogin').onclick=async()=>{
   try{
-    addLog("🔄 Đang xác thực Pi Account...");
+    addLog("🔄 Xác thực Pi SANDBOX cho App MAINNET: "+window.location.hostname);
     let auth=await Pi.authenticate(['username','payments'],(p)=>{addLog("Incomplete: "+p.identifier)});
-    addLog("----------------------------------------");
-    addLog("✅ ĐĂNG NHẬP THÀNH CÔNG!");
-    addLog("👉 USERNAME: " + auth.user.username);
-    addLog("👉 UID CHUẨN: " + auth.user.uid);
-    addLog("----------------------------------------");
-  }catch(e){addLog("❌ LỖI LOGIN: "+e.message)}
+    addLog("✅ LOGIN SANDBOX (cho App MAINNET): "+auth.user.uid+" @"+auth.user.username);
+  }catch(e){addLog("❌ LỖI: "+e.message)}
 };
 
 document.getElementById('btnPay').onclick=async()=>{
-  addLog("🚀 BẮT ĐẦU BẮN 5 UID SANDBOX...");
+  addLog("🚀 BẮT ĐẦU BẮN 5 UID MAINNET - DOMAIN: "+window.location.hostname+" - PAY TEST...");
   for(let i=0;i<TARGET_UIDS.length;i++){
     let u=TARGET_UIDS[i];
-    addLog(`⏳ [${i+1}/5] UID: ${u.uid.substring(0,8)}...`);
+    addLog(`⏳ [${i+1}/5] (${u.uid.substring(0,8)}...)`);
     try{
-      let r=await fetch('/api/a2u?cache_bust='+Date.now(),{
+      let r=await fetch('/api/a2u',{
         method:'POST',
-        headers:{'Content-Type':'application/json','Cache-Control':'no-cache'},
-        body:JSON.stringify({uid:u.uid,username:u.username,amount:1,memo:`Lumia909 Mainnet to UID ${u.uid.substring(0,6)} #${Date.now()}`})
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({uid:u.uid,username:u.username,amount:1})
       });
       let res=await r.json();
-      if(r.ok) addLog(`✅ [${i+1}/5] THÀNH CÔNG! PaymentID: ${res.paymentId || JSON.stringify(res).substring(0,100)}`);
-      else addLog(`❌ [${i+1}/5] THẤT BẠI: ${JSON.stringify(res).substring(0,250)}`);
+      if(r.ok) addLog(`✅ [${i+1}/5] THÀNH CÔNG MAINNET TEST PAY! PaymentID: ${res.paymentId || JSON.stringify(res)}`);
+      else addLog(`❌ [${i+1}/5] THẤT BẠI: ${JSON.stringify(res)}`);
     }catch(err){addLog(`❌ Lỗi mạng: ${err.message}`)}
     await new Promise(r=>setTimeout(r,1200));
   }
+  addLog("🎉 XONG BATCH MAINNET - SANDBOX PAY TEST! Domain: "+window.location.hostname);
 };
 </script>
 </body>
