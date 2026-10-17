@@ -1,0 +1,7 @@
+{
+  "name": "gardenstation303",
+  "version": "1.0.0",
+  "dependencies": {
+    "@stellar/stellar-sdk": "^11.2.0"
+  }
+}
