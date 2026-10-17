@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/a2u.js": {
-      "maxDuration": 30
-    }
-  }
-}
