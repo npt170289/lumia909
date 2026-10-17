@@ -1,0 +1,5 @@
+{
+  "routes": [
+    { "src": "/api/a2u", "dest": "/api/a2u.js" }
+  ]
+}
