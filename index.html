@@ -1,43 +1,58 @@
+<!-- LUMIA 909 - MAINNET BUILD + SANDBOX ENABLED v6 - FIX 404 + RESET CACHE -->
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lumia 909 - MAINNET A2U Batch - SANDBOX FIX</title>
+<title>Lumia 909 - MAINNET - SANDBOX</title>
 <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 <style>
-body{margin:0;background:#000;color:#0f0;font-family:monospace;padding:20px;padding-top:50px}
-#verify{border:2px dashed #ffeb3b;background:#111;padding:15px;margin-bottom:15px;color:#fff;line-height:1.8;font-size:13px}
-#verify b{color:#ffeb3b}
-button{padding:12px 20px;margin:5px;border:none;border-radius:8px;font-weight:bold;cursor:pointer}
-#log{margin-top:15px;background:#0a0a0a;border:1px solid #333;padding:15px;white-space:pre-wrap;font-size:12px;height:400px;overflow:auto}
+/* FIX 3 DÒNG CHỒNG NHAU: Đẩy body xuống tránh header Pi Browser */
+body{font-family:monospace;background:#0a0a0a;color:#0f0;padding:15px;padding-top:50px;margin:0}
+h2{margin-top:10px;font-size:18px;line-height:1.4}
+h2 span.main{color:#fff;background:red;padding:3px 8px;border-radius:4px}
+h2 span.test{color:#000;background:#0f0;padding:3px 8px;border-radius:4px;margin-left:5px}
+button{padding:12px 18px;margin:8px 5px;font-size:15px;cursor:pointer;font-weight:bold;border-radius:6px}
+#verify{border:1px dashed #ff0;background:#1a1a00;color:#ff0;padding:10px;margin:12px 0;font-size:12px;border-radius:6px;word-break:break-all}
+#verify b{color:#fff}
+#log{white-space:pre-wrap;background:#000;padding:12px;border:1px solid #0f0;height:420px;overflow:auto;font-size:12px;border-radius:6px}
 </style>
 </head>
 <body>
-<h2>🟣 Lumia 909 - Garden Station Soul - MAINNET</h2>
+
+<h2>🟣 <span class="main">MAINNET</span> Lumia 909 <span class="test">SANDBOX ENABLED</span></h2>
+
+<p style="color:#aaa;font-size:12px;margin:5px 0">App MAINNET - Pay Pi TEST - 5 UID Chuẩn - Garden Soul</p>
+
+<!-- KHUNG XÁC MINH 100% LÀ CON LUMIA909 MAINNET -->
 <div id="verify">
+<b>🔍 XÁC MINH ĐANG PAY CHO CON NÀO:</b><br>
 ✅ BUILD: <b>lumia909-mainnet.vercel.app</b> (Repo mới toanh)<br>
 ✅ App ID: <b>lumia909</b> - MAINNET<br>
 ✅ API Key: <b>5v9y...2n1f (đã set env PI_API_KEY)</b><br>
 ✅ App Wallet: <b>GDQMZ3GHWACKVFDALX3UIHLXMWIXRBWPLQ5XI2QDE7OQFWDNGOQZR3PU</b><br>
 ✅ Validation Key: <b>67416ca0...fad (đã tạo)</b><br>
-✅ Mode: <b>SANDBOX Pay Pi TEST</b> (giữ hồn Garden Station 303)<br>
-✅ Current URL: <span id="curUrl">loading...</span><br>
-✅ Host: <span id="curHost">loading...</span>
+✅ Mode: <b id="modeText">SANDBOX = Pay Pi TEST (giữ hồn Garden Station 303)</b><br>
+✅ Current URL: <span id="curUrl" style="color:#0ff">đang tải...</span><br>
+✅ Host: <span id="curHost" style="color:#0ff"></span>
 </div>
 
 <button onclick="hardResetSandbox()" style="background:#ffeb3b;color:#000">0. 🔄 RESET SANDBOX (XÓA CACHE PI BROWSER)</button>
-<button onclick="loginPi()" style="background:#0f0;color:#000">1. ĐĂNG NHẬP PI</button>
-<button onclick="batchPay()" style="background:#ff00ff;color:#fff">2. BẮN 5 UID</button>
+<button id="btnLogin" style="background:#0f0;color:#000">1. ĐĂNG NHẬP PI (SANDBOX)</button>
+<button id="btnPay" style="background:#ff00ff;color:#fff">2. BẮN 5 UID</button>
 
-<div id="log">[LOG] Ready for Lumia909 Mainnet Build - v6 Fix Cache...</div>
+<div id="log">[LOG] Ready for Lumia909 Mainnet Build - v6 Garden Soul...</div>
 
 <script>
-// === GIỮ HỒN GARDEN STATION 303 - MAINNET + SANDBOX ENABLED ===
+const Pi=window.Pi;
+// GIỮ HỒN GARDEN: Con mainnet nhưng bật sandbox để pay Pi TEST
 Pi.init({version:"2.0", sandbox:true});
-let piUser = null;
 
-// --- FIX 500 - DÙNG UID CHUẨN NHƯ CON GARDEN ĐÃ PAY THÀNH CÔNG ---
+// HIỆN URL NGAY ĐỂ XÁC MINH 100% LÀ CON MAINNET
+document.getElementById('curUrl').textContent = window.location.href;
+document.getElementById('curHost').textContent = window.location.hostname;
+
+// 5 UID CHUẨN - GIỮ NGUYÊN DÙNG LẠI ĐƯỢC - KHÔNG PHÂN BIỆT TESTNET/MAINNET
 const TARGET_UIDS=[
 {username:"nguyenanhtuan113113",uid:"657c1562-9472-4013-a76c-134404310717"},
 {username:"thuongsheva",uid:"70ea2ff5-c5ef-4dd2-a934-d8c73e280696"},
@@ -46,79 +61,54 @@ const TARGET_UIDS=[
 {username:"dttngan123",uid:"e668ffbf-8de9-42c3-a918-b3ffd13ba9ce"}
 ];
 
-document.getElementById('curUrl').innerText = window.location.href;
-document.getElementById('curHost').innerText = window.location.host;
-
-function log(msg){
-  const el = document.getElementById('log');
-  el.innerText += "\n[" + new Date().toLocaleTimeString() + "] " + msg;
-  el.scrollTop = el.scrollHeight;
-  console.log(msg);
+function addLog(m){
+  let el=document.getElementById('log');
+  el.textContent+="\n["+new Date().toLocaleTimeString()+"] "+m;
+  el.scrollTop=el.scrollHeight;
+  console.log(m);
 }
 
-// --- LỆNH RESET SANDBOX CỦA GEMINI - FIX PI BROWSER KHÔNG XÓA CACHE GÂY 500 ---
+// LỆNH RESET SANDBOX - FIX ĐẶC TRƯNG PI BROWSER KHÔNG XÓA CACHE GÂY 500/404
 function hardResetSandbox(){
-  log("> 🧹 [RESET] Đang xóa cache Pi Browser (đặc trưng không tự xóa)...");
+  addLog("🧹 [RESET] Đang xóa cache Pi Browser...");
   try{
     localStorage.clear();
     sessionStorage.clear();
-    Object.keys(localStorage).forEach(k=>{
-      if(k.toLowerCase().includes('pi')) localStorage.removeItem(k);
-    });
-  }catch(e){ log("> ⚠️ Lỗi xóa: "+e.message); }
-  
-  log("> 🔄 Reload với cache-bust...");
+    // Xóa cả IndexedDB của Pi
+    if(window.indexedDB && window.indexedDB.databases){
+      window.indexedDB.databases().then(dbs=>{dbs.forEach(db=>{window.indexedDB.deleteDatabase(db.name)})});
+    }
+  }catch(e){ addLog("⚠️ Lỗi xóa: "+e.message); }
+  addLog("🔄 Reload với cache-bust...");
   setTimeout(()=>{
     window.location.href = window.location.pathname + '?clear_sandbox=' + Date.now();
-  }, 600);
+  }, 700);
 }
 
-async function loginPi(){
+document.getElementById('btnLogin').onclick=async()=>{
   try{
-    log("> Đang login Pi SANDBOX cho Lumia909 MAINNET...");
-    const scopes = ['username','payments'];
-    const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-    piUser = auth.user;
-    log("> ✅ Login OK: " + piUser.username + " UID:" + piUser.uid);
-  }catch(e){ log("> ❌ Login FAIL: "+e.message); }
-}
+    addLog("🔄 Xác thực Pi SANDBOX cho App MAINNET: "+window.location.hostname);
+    let auth=await Pi.authenticate(['username','payments'],(p)=>{addLog("Incomplete: "+p.identifier)});
+    addLog("✅ LOGIN SANDBOX (cho App MAINNET): "+auth.user.uid+" @"+auth.user.username);
+  }catch(e){addLog("❌ LỖI LOGIN: "+e.message)}
+};
 
-function onIncompletePaymentFound(payment){
-  log("> ⚠️ Found incomplete payment: " + payment.identifier + " -> Dọn dẹp...");
-}
-
-async function batchPay(){
-  if(!piUser){ log("> ❌ Chưa đăng nhập! Bấm nút 1 trước!"); return; }
-  log("> 🚀 Bắt đầu BATCH 5 UID cho LUMIA909 MAINNET BUILD - SANDBOX PAY...");
-  
+document.getElementById('btnPay').onclick=async()=>{
+  addLog("🚀 BẮT ĐẦU BẮN 5 UID - DOMAIN: "+window.location.hostname+" - PAY TEST...");
   for(let i=0;i<TARGET_UIDS.length;i++){
-    let u = TARGET_UIDS[i];
+    let u=TARGET_UIDS[i];
+    addLog(`⏳ [${i+1}/5] @${u.username} (${u.uid.substring(0,8)}...)`);
     try{
-      let uniqueMemo = `Lumia909 Mainnet to @${u.username} #${Date.now()}`;
-      log(`> [${i+1}/5] Đang pay cho @${u.username} (${u.uid.substring(0,8)}...)`);
-      
-      const res = await fetch('/api/a2u?cache_bust='+Date.now(), {
-        method:'POST',
-        headers:{'Content-Type':'application/json','Cache-Control':'no-cache'},
-        body:JSON.stringify({
-          uid: u.uid, 
-          username: u.username, 
-          amount:1, 
-          memo: uniqueMemo
-        })
-      });
-      
-      const data = await res.json();
-      if(res.ok && data.success){
-        log(`> ✅ [${i+1}/5] Pay OK @${u.username} Tx: ${data.paymentId}`);
-      }else{
-        log(`> ❌ [${i+1}/5] Pay FAIL @${u.username}: ${JSON.stringify(data).substring(0,200)}`);
-      }
-    }catch(e){ log(`> ❌ Lỗi @${u.username}: ${e.message}`); }
-    await new Promise(r=>setTimeout(r,1500));
+      // GỬI Y NHƯ GARDEN V5 THÀNH CÔNG
+      let r=await fetch('/api/a2u?cache_bust='+Date.now(),{method:'POST',headers:{'Content-Type':'application/json','Cache-Control':'no-cache'},body:JSON.stringify({uid:u.uid,username:u.username,amount:1,memo:`Lumia909 Mainnet to @${u.username} #${Date.now()}`})});
+      let res=await r.json();
+      if(r.ok) addLog(`✅ [${i+1}/5] @${u.username} THÀNH CÔNG! ${JSON.stringify(res).substring(0,200)}`);
+      else addLog(`❌ [${i+1}/5] THẤT BẠI: ${JSON.stringify(res).substring(0,300)}`);
+    }catch(err){addLog(`❌ Lỗi mạng: ${err.message}`)}
+    await new Promise(r=>setTimeout(r,1200));
   }
-  log("> 🎉 HOÀN TẤT BATCH 5 UID - LUMIA909 MAINNET!");
-}
+  addLog("🎉 HOÀN TẤT BATCH 5 UID - LUMIA909 MAINNET!");
+};
 </script>
 </body>
 </html>
