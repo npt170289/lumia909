@@ -6,11 +6,10 @@ export default async function handler(req, res) {
 
   const PI_API_KEY = process.env.PI_API_KEY;
   if (!PI_API_KEY) {
-    return res.status(500).json({ success: false, error: "Server configuration error: missing PI_API_KEY" });
+    return res.status(500).json({ success: false, error: "Missing PI_API_KEY" });
   }
 
   const body = req.body || {};
-  // Hỗ trợ cả 1 UID (uid) và 5 UID (uids)
   let targetList = [];
   if (Array.isArray(body.uids) && body.uids.length > 0) {
     targetList = body.uids.map(u => typeof u === 'string' ? u.trim() : '').filter(Boolean);
@@ -18,10 +17,6 @@ export default async function handler(req, res) {
     targetList = [body.uid.trim()];
   }
 
-  const username = typeof body.username === "string" ? body.username.trim() : "";
-  const amount = Number(body.amount);
-  
-  // Nếu truyền 5 UID hoàn chỉnh của bro thì dùng luôn
   const DEFAULT_5UIDS = [
     "17bd5195-d292-453f-9257-e3c9d812a7a0",
     "4a0e132a-2689-484b-8d4b-04e6391a89d9",
@@ -29,15 +24,8 @@ export default async function handler(req, res) {
     "0c5bbb4d-5306-48b4-b227-383d95399a53",
     "f963dc03-f6f5-41ba-a3f4-54f5a8569b5c"
   ];
-
-  if (targetList.length === 0) {
-    // Nếu không gửi gì thì mặc định bắn 5 UID thật của bro
-    targetList = DEFAULT_5UIDS;
-  }
-
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return res.status(400).json({ success: false, error: "Invalid amount" });
-  }
+  if (targetList.length === 0) targetList = DEFAULT_5UIDS;
+  const amount = Number(body.amount) || 1;
 
   async function piFetch(path, method = "GET", payload) {
     const r = await fetch(`https://api.minepi.com${path}`, {
@@ -51,78 +39,99 @@ export default async function handler(req, res) {
     });
     const text = await r.text();
     let data;
-    try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text.slice(0,2000)}; }
+    try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text.slice(0,3000)}; }
     return { ok: r.ok, status: r.status, data };
   }
 
-  try {
-    // B0: DỌN INCOMPLETE CŨ - Đây là chỗ fix kẹt UID đầu tiên
+  async function cancelOngoingIfFound(piErrorData) {
     try {
-      const incomplete = await piFetch("/v2/payments/incomplete", "GET");
-      if (incomplete.ok && incomplete.data && Array.isArray(incomplete.data.incomplete_payments)) {
-        for (const p of incomplete.data.incomplete_payments) {
-          await piFetch(`/v2/payments/${p.identifier}/cancel`, "POST");
-        }
-      } else if (incomplete.ok && Array.isArray(incomplete.data) && incomplete.data.length > 0) {
-        // Format khác của Pi API
-        for (const p of incomplete.data) {
-          await piFetch(`/v2/payments/${p.identifier}/cancel`, "POST");
+      // Pi trả về kiểu: { error: "ongoing_payment_found", ... } hoặc trong details
+      let paymentId = null;
+      if (piErrorData && piErrorData.payment && piErrorData.payment.identifier) paymentId = piErrorData.payment.identifier;
+      if (!paymentId && piErrorData && piErrorData.identifier) paymentId = piErrorData.identifier;
+      if (!paymentId && piErrorData && piErrorData.ongoing_payment && piErrorData.ongoing_payment.identifier) paymentId = piErrorData.ongoing_payment.identifier;
+      
+      // Nếu không moi được id từ error, thì gọi list incomplete
+      if (!paymentId) {
+        const inc = await piFetch("/v2/payments/incomplete", "GET");
+        const list = inc.data?.incomplete_payments || inc.data || [];
+        if (Array.isArray(list) && list.length > 0) {
+          paymentId = list[0].identifier;
         }
       }
-    } catch (e) {
-      // Không chặn flow chính nếu dọn rác lỗi
-      console.log("Cleanup incomplete error:", e.message);
-    }
 
-    // B1: BẮN 5 UID - Giữ y nguyên logic ChatGPT đã thành công cho 1 UID
-    const results = [];
-    for (let i = 0; i < targetList.length; i++) {
-      const uid = targetList[i];
+      if (paymentId) {
+        // Thử complete trước, fail thì cancel - đây là chuẩn Pi
+        let result = await piFetch(`/v2/payments/${paymentId}/complete`, "POST", { txid: "a2u_retry_complete" });
+        if (!result.ok) {
+          result = await piFetch(`/v2/payments/${paymentId}/cancel`, "POST");
+        }
+        return { cancelled: result.ok, paymentId, result: result.data };
+      }
+    } catch (e) {}
+    return { cancelled: false };
+  }
+
+  const results = [];
+
+  for (let i = 0; i < targetList.length; i++) {
+    const uid = targetList[i];
+    let attempt = 0;
+    let finalResult = null;
+
+    while (attempt < 3) {
+      attempt++;
       const piPayload = {
         payment: {
           amount,
-          memo: `Lumia 909 Sandbox Test to @${username || uid} - ${i+1}/${targetList.length}`,
-          metadata: { target_uid: uid, batch_index: i },
+          memo: `Lumia 909 Sandbox Test to @${uid.substring(0,6)} - ${i+1}/${targetList.length}`,
+          metadata: { target_uid: uid, batch_index: i, attempt },
           uid,
         },
       };
 
       const piResponse = await piFetch("/v2/payments", "POST", piPayload);
 
-      if (!piResponse.ok) {
-        results.push({
-          uid,
-          success: false,
-          error: "Pi Platform API rejected",
-          details: piResponse.data,
-          status: piResponse.status
-        });
+      if (piResponse.ok) {
+        finalResult = { uid, success: true, pi_response: piResponse.data, attempts: attempt };
+        break;
       } else {
-        results.push({
-          uid,
-          success: true,
-          pi_response: piResponse.data
-        });
-      }
-
-      // Nghỉ nhẹ 600ms giữa các lần bắn tránh rate limit
-      if (i < targetList.length - 1) {
-        await new Promise(r => setTimeout(r, 600));
+        const errStr = JSON.stringify(piResponse.data).toLowerCase();
+        if (errStr.includes("ongoing_payment_found") || errStr.includes("ongoing payment")) {
+          // Gặp kẹt -> cancel rồi retry ngay
+          const cancelRes = await cancelOngoingIfFound(piResponse.data);
+          if (cancelRes.cancelled) {
+            finalResult = { uid, success: false, retrying: true, cancelled_old: cancelRes.paymentId };
+            continue; // retry lại vòng while
+          } else {
+            finalResult = { uid, success: false, error: "ongoing_payment_found but cannot cancel", details: piResponse.data, status: piResponse.status };
+            break;
+          }
+        } else {
+          finalResult = { uid, success: false, error: "Pi API rejected", details: piResponse.data, status: piResponse.status, attempts: attempt };
+          break;
+        }
       }
     }
 
-    const allOk = results.every(r => r.success);
-    return res.status(allOk ? 200 : 207).json({
-      success: allOk,
-      total: results.length,
-      results
-    });
+    if (finalResult.retrying) {
+      // Nếu vẫn retrying sau 3 lần thì thử lần cuối sau khi đã cancel
+      const lastPayload = {
+        payment: { amount, memo: `Lumia 909 Retry ${uid}`, metadata: { target_uid: uid }, uid }
+      };
+      const lastResp = await piFetch("/v2/payments", "POST", lastPayload);
+      finalResult = lastResp.ok ? { uid, success: true, pi_response: lastResp.data } : { uid, success: false, error: "Failed after cancel", details: lastResp.data };
+    }
 
-  } catch (error) {
-    return res.status(502).json({
-      success: false,
-      error: "Unable to reach Pi Platform API",
-      details: error.message,
-    });
+    results.push(finalResult);
+    if (i < targetList.length - 1) await new Promise(r => setTimeout(r, 800));
   }
+
+  const allOk = results.every(r => r.success);
+  return res.status(allOk ? 200 : 207).json({
+    success: allOk,
+    total: results.length,
+    results,
+    note: "Fixed ongoing_payment_found by auto cancel + retry"
+  });
 }
