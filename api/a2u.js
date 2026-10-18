@@ -1,4 +1,3 @@
-
 export default async function handler(req, res) {
   // 1. Chỉ nhận POST
   if (req.method !== "POST") {
@@ -14,7 +13,6 @@ export default async function handler(req, res) {
 
   if (!PI_API_KEY) {
     console.error("Missing environment variable: PI_API_KEY");
-
     return res.status(500).json({
       success: false,
       error: "Server configuration error",
@@ -24,10 +22,8 @@ export default async function handler(req, res) {
 
   // 3. Đọc và xác thực dữ liệu đầu vào
   const body = req.body || {};
-  const uid =
-    typeof body.uid === "string" ? body.uid.trim() : "";
-  const username =
-    typeof body.username === "string" ? body.username.trim() : "";
+  const uid = typeof body.uid === "string" ? body.uid.trim() : "";
+  const username = typeof body.username === "string" ? body.username.trim() : "";
   const amount = Number(body.amount);
 
   if (!uid) {
@@ -44,69 +40,94 @@ export default async function handler(req, res) {
     });
   }
 
-  // 4. Tạo yêu cầu A2U gửi tới Pi Platform API
+  // 4. BƯỚC 1: Tạo yêu cầu A2U gửi tới Pi Platform API
   const piPayload = {
     payment: {
       amount,
       memo: `Lumia 909 Sandbox Test to @${username || uid}`,
-      metadata: {
-        target_uid: uid,
-      },
+      metadata: { target_uid: uid },
       uid,
     },
   };
 
   try {
-    const piResponse = await fetch(
-      "https://api.minepi.com/v2/payments",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Key ${PI_API_KEY}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(piPayload),
-      }
-    );
+    const createRes = await fetch("https://api.minepi.com/v2/payments", {
+      method: "POST",
+      headers: {
+        Authorization: `Key ${PI_API_KEY}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(piPayload),
+    });
 
-    // Đọc an toàn kể cả khi Pi API không trả JSON
-    const responseText = await piResponse.text();
-    let responseData;
-
+    const createText = await createRes.text();
+    let createData;
     try {
-      responseData = responseText
-        ? JSON.parse(responseText)
-        : {};
+      createData = createText ? JSON.parse(createText) : {};
     } catch {
-      responseData = {
-        raw_response: responseText.slice(0, 2000),
-      };
+      createData = { raw_response: createText.slice(0, 2000) };
     }
 
-    // Không log API key hoặc thông tin bí mật
-    console.log("Pi API Status:", piResponse.status);
-    console.log(
-      "Pi API Response:",
-      JSON.stringify(responseData)
-    );
-
-    if (!piResponse.ok) {
-      return res.status(piResponse.status).json({
+    if (!createRes.ok) {
+      return res.status(createRes.status).json({
         success: false,
-        error: "Pi Platform API rejected the request",
-        pi_status: piResponse.status,
-        details: responseData,
+        error: "Pi Platform API rejected payment creation",
+        pi_status: createRes.status,
+        details: createData,
       });
     }
 
-    return res.status(piResponse.status).json({
+    const paymentId = createData.identifier;
+    const txid = createData.transaction?.txid || `tx_sandbox_${Date.now()}`;
+
+    // 5. BƯỚC 2: Tự động gọi COMPLETE để đóng vòng đời giao dịch ngay lập tức
+    // Tránh bị giữ trạng thái treo dở dang (ongoing_payment_found) cho UID tiếp theo
+    if (paymentId) {
+      try {
+        const completeRes = await fetch(
+          `https://api.minepi.com/v2/payments/${paymentId}/complete`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Key ${PI_API_KEY}`,
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({ txid }),
+          }
+        );
+
+        const completeText = await completeRes.text();
+        let completeData;
+        try {
+          completeData = completeText ? JSON.parse(completeText) : {};
+        } catch {
+          completeData = { raw_response: completeText.slice(0, 2000) };
+        }
+
+        if (completeRes.ok) {
+          return res.status(200).json({
+            success: true,
+            completed: true,
+            payment_id: paymentId,
+            pi_response: completeData,
+          });
+        }
+      } catch (completeErr) {
+        console.warn("Auto-complete call error:", completeErr.message);
+      }
+    }
+
+    // Trả về kết quả nếu tạo thành công (ngay cả khi complete chờ xử lý ở sandbox)
+    return res.status(200).json({
       success: true,
-      pi_response: responseData,
+      completed: false,
+      payment_id: paymentId,
+      pi_response: createData,
     });
   } catch (error) {
     console.error("A2U request failed:", error.message);
-
     return res.status(502).json({
       success: false,
       error: "Unable to reach Pi Platform API",
