@@ -39,12 +39,7 @@ document.getElementById('curUrl').textContent = window.location.href;
 document.getElementById('curHost').textContent = window.location.hostname;
 
 const TARGET_UIDS = [
-  {username: "user_1", uid: "17bd5195-d292-453f-9257-e3c9d812a7a0"},
-  {username: "user_2", uid: "4a0e132a-2689-484b-8d4b-04e6391a89d9"},
-  {username: "user_3", uid: "7dc50a3e-e66d-4e06-8077-d2b5306889b1"},
-  {username: "user_4", uid: "0c5bbb4d-5306-48b4-b227-383d95399a53"},
-  {username: "user_5", uid: "f963dc03-f6f5-41ba-a3f4-54f5a8569b5c"}
-];
+  {username: "user_1", uid: "17bd5195-d292-453f-9257-e3c9d812a7a0"},];
 
 function addLog(m) {
   let el = document.getElementById('log');
@@ -82,8 +77,8 @@ document.getElementById('btnLogin').onclick = async () => {
     let auth = await Pi.authenticate(['username', 'payments'], (p) => { addLog("Incomplete: " + p.identifier); });
     addLog("----------------------------------------");
     addLog("✅ TẠO SESSION SANDBOX MỚI THÀNH CÔNG!");
-    addLog("👉 UID CỦA BẠN: " + auth.user.uid);
-    addLog("👉 USERNAME: @" + auth.user.username);
+    addLog("👉 UID CỦA BẠN: " + "17bd5195-d292-453f-9257-e3c9d812a7a0");
+    addLog("👉 USERNAME: @" + "thuongsheva");
     addLog("----------------------------------------");
   } catch (e) {
     addLog("❌ LỖI LOGIN: " + e.message);
