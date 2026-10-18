@@ -1,56 +1,57 @@
 export default async function handler(req, res) {
   if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
     return res.status(405).json({ success: false, error: "Method Not Allowed" });
   }
 
   const PI_API_KEY = process.env.PI_API_KEY;
   if (!PI_API_KEY) {
-    return res.status(500).json({ success: false, error: "Thiếu PI_API_KEY" });
+    return res.status(500).json({ success: false, error: "Server configuration error" });
   }
 
-  // Nhận payment_identifier bị kẹt từ request body
-  const { payment_id } = req.body || {};
+  const body = req.body || {};
+  const payment_id = typeof body.payment_id === "string" ? body.payment_id.trim() : "";
 
   if (!payment_id) {
-    return res.status(400).json({ success: false, error: "Thiếu payment_id" });
+    return res.status(400).json({ success: false, error: "Missing payment_id" });
   }
 
   try {
-    // Gọi API của Pi Network để hủy/giải phóng giao dịch đang bị treo
-    const response = await fetch(
-      `https://api.minepi.com/v2/payments/${payment_id}/cancel`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Key ${PI_API_KEY}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      }
-    );
+    const piResponse = await fetch(`https://api.minepi.com/v2/payments/${payment_id}/cancel`, {
+      method: "POST",
+      headers: {
+        Authorization: `Key ${PI_API_KEY}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
 
-    const responseText = await response.text();
-    let data;
+    const responseText = await piResponse.text();
+    let responseData;
     try {
-      data = JSON.parse(responseText);
+      responseData = responseText ? JSON.parse(responseText) : {};
     } catch {
-      data = { raw: responseText };
+      responseData = { raw_response: responseText.slice(0, 2000) };
     }
 
-    if (!response.ok) {
-      return res.status(response.status).json({
+    if (!piResponse.ok) {
+      return res.status(piResponse.status).json({
         success: false,
         error: "Không thể hủy giao dịch trên Pi Server",
-        details: data,
+        details: responseData,
       });
     }
 
     return res.status(200).json({
       success: true,
       message: `Đã hủy thành công giao dịch kẹt: ${payment_id}`,
-      pi_response: data,
+      pi_response: responseData,
     });
-  } catch (err) {
-    return res.status(502).json({ success: false, error: err.message });
+  } catch (error) {
+    return res.status(502).json({
+      success: false,
+      error: "Unable to reach Pi Platform API",
+      details: error.message,
+    });
   }
 }
