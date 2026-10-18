@@ -2,73 +2,56 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lumia 909 - 5 UID Real</title>
+<title>Lumia 909 - 5 UID Batch</title>
 <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-<style>body{font-family:monospace;background:#0a0a0a;color:#00ff66;padding:18px} .tag{background:#ff00ff;color:#fff;padding:3px 6px;border-radius:4px} #log{background:#000;border:1px solid #00ff66;border-radius:6px;padding:10px;white-space:pre-wrap;height:600px;overflow:auto;font-size:11px} button{width:100%;padding:12px;margin:6px 0;border:0;border-radius:6px;font-weight:bold;cursor:pointer} #b0{background:#ffeb3b;color:#000} #b1{background:#00ff66;color:#000} #b2{background:#ff00ff;color:#fff}</style>
+<style>body{font-family:monospace;background:#0a0a0a;color:#00ff66;padding:18px} #log{background:#000;border:1px solid #00ff66;border-radius:6px;padding:10px;white-space:pre-wrap;height:600px;overflow:auto;font-size:11px} button{width:100%;padding:14px;margin:6px 0;border:0;border-radius:8px;font-weight:bold;cursor:pointer;font-size:14px} #b1{background:#00ff66;color:#000} #b2{background:#ff00ff;color:#fff}</style>
 </head>
 <body>
-<h2><span class="tag">5 UID REAL</span> Lumia 909 - Fix Kẹt Incomplete</h2>
-<div id="info"></div>
-<button id="b0">0. TẨY TRẮNG SÂU & RESET SANDBOX</button>
-<button id="b1">1. ĐĂNG NHẬP + DỌN PAYMENT KẸT</button>
-<button id="b2">2. GỬI A2U CHO 5 UID THẬT</button>
-<div id="log">Sẵn sàng với 5 UID thật...</div>
+<h2>🔥 Lumia 909 - Pay A2U 5 UID (1 click)</h2>
+<p>Đã nhúng sẵn 5 UID thật của bro</p>
+<button id="b1">1. ĐĂNG NHẬP PI</button>
+<button id="b2">2. BẮN 1 PHÁT CHO 5 UID</button>
+<div id="log">Sẵn sàng...</div>
 <script>
-const TARGETS = [
- {username:"uid1_thuong", uid:"17bd5195-d292-453f-9257-e3c9d812a7a0"},
- {username:"uid2", uid:"4a0e132a-2689-484b-8d4b-04e6391a89d9"},
- {username:"uid3", uid:"7dc50a3e-e66d-4e06-8077-d2b5306889b1"},
- {username:"uid4", uid:"0c5bbb4d-5306-48b4-b227-383d95399a53"},
- {username:"uid5", uid:"f963dc03-f6f5-41ba-a3f4-54f5a8569b5c"}
+const FIVE_UIDS = [
+ "17bd5195-d292-453f-9257-e3c9d812a7a0",
+ "4a0e132a-2689-484b-8d4b-04e6391a89d9",
+ "7dc50a3e-e66d-4e06-8077-d2b5306889b1",
+ "0c5bbb4d-5306-48b4-b227-383d95399a53",
+ "f963dc03-f6f5-41ba-a3f4-54f5a8569b5c"
 ];
-const logEl=document.getElementById('log'); let busy=false; let currentUser=null;
-document.getElementById('info').innerText="Target: 5 UID - Host: "+location.host+"\nUIDs: "+TARGETS.map(t=>t.uid.substring(0,8)).join(", ");
+const logEl=document.getElementById('log'); let busy=false;
 function log(m){logEl.textContent+="\n["+new Date().toLocaleTimeString()+"] "+m; logEl.scrollTop=logEl.scrollHeight;}
 function setBusy(v){busy=v; document.querySelectorAll('button').forEach(b=>b.disabled=v);}
-async function hardReset(){log("🧹 Dọn local..."); try{localStorage.clear();sessionStorage.clear(); if(indexedDB.databases){const d=await indexedDB.databases(); for(let db of d) indexedDB.deleteDatabase(db.name);} document.cookie.split(";").forEach(c=>document.cookie=c.replace(/^ +/, "").replace(/=.*/, "=;expires="+new Date().toUTCString()+";path=/")); if('serviceWorker' in navigator){const r=await navigator.serviceWorker.getRegistrations(); for(let x of r) await x.unregister();} log("✅ Dọn local xong"); }catch(e){log("⚠ "+e.message);} }
-async function handleIncompletePayment(payment){
-  log("⚠️ Kẹt payment: "+payment.identifier);
-  log("⏳ Đang gọi server để cancel/complete payment kẹt...");
+async function onIncompletePayment(payment){
+  log("⚠️ Có payment kẹt: "+payment.identifier+" -> đang nhờ server cancel...");
   try{
-    const resp = await fetch("/api/pay", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ action:"complete_incomplete", paymentId: payment.identifier })
-    });
-    const txt = await resp.text(); log("Server: "+txt.substring(0,600));
-  }catch(e){log("Lỗi xử lý incomplete: "+e.message);}
+    await fetch("/api/pay", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({action:"cancel_incomplete", paymentId: payment.identifier})});
+  }catch{}
 }
 async function auth(){
-  if(!window.Pi) throw new Error("No Pi SDK - Mở bằng Pi Browser");
-  log("Xin scope...");
-  const auth = await window.Pi.authenticate(["username","payments","wallet_address"], handleIncompletePayment);
-  currentUser=auth.user; log("Login OK: @"+currentUser.username+" "+currentUser.uid); return auth;
+  if(!window.Pi) throw new Error("Mở bằng Pi Browser");
+  const a = await window.Pi.authenticate(["username","payments","wallet_address"], onIncompletePayment);
+  log("Login OK: @"+a.user.username+" "+a.user.uid); return a;
 }
-window.addEventListener("load",()=>{try{Pi.init({version:"2.0", sandbox:true}); log("SDK init OK - Sẵn sàng 5 UID: "+TARGETS.length);}catch(e){log(e.message);}});
-document.getElementById('b0').onclick=async()=>{if(busy)return; setBusy(true); await hardReset(); setTimeout(()=>location.href=location.pathname+"?reset="+Date.now(),800);};
-document.getElementById('b1').onclick=async()=>{if(busy)return; setBusy(true); try{await hardReset(); await auth(); log("✅ Đã dọn xong payment kẹt nếu có. Giờ bấm nút 2 để bắn 5 UID");}catch(e){log("LỖI: "+e.message);}finally{setBusy(false);}};
+window.addEventListener("load",()=>{try{Pi.init({version:"2.0", sandbox:true}); log("SDK OK - 5 UID: "+FIVE_UIDS.join(", ").substring(0,80)+"...");}catch(e){log(e.message);}});
+document.getElementById('b1').onclick=async()=>{if(busy)return; setBusy(true); try{await auth();}catch(e){log("LỖI: "+e.message);}finally{setBusy(false);}};
 document.getElementById('b2').onclick=async()=>{
  if(busy)return; setBusy(true);
  try{
-  await hardReset(); await auth();
-  log("Bắt đầu bắn 5 UID THẬT - auto cancel cũ trước mỗi lần");
-  for(let i=0;i<TARGETS.length;i++){
-   const t=TARGETS[i]; log(`\n---- [${i+1}/5] ${t.username} ${t.uid} ----`);
-   try{
-    const r=await fetch("/api/pay?cache_bust="+Date.now(),{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({uid:t.uid, username:t.username, amount:1, action:"create_new"})
-    });
-    const raw=await r.text(); let j; try{j=JSON.parse(raw);}catch{j={raw}};
-    log("HTTP "+r.status+" => "+JSON.stringify(j).substring(0,900));
-    if(r.ok) log(`✅ [${i+1}/5] OK`);
-    else log(`❌ [${i+1}/5] FAIL`);
-   }catch(e){log(`❌ [${i+1}/5] Lỗi: ${e.message}`);}
-   await new Promise(r=>setTimeout(r,2000));
+  await auth();
+  log("🚀 Bắn batch 5 UID - amount 1...");
+  const r = await fetch("/api/pay", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ uids: FIVE_UIDS, amount: 1 })
+  });
+  const data = await r.json();
+  log("Kết quả HTTP "+r.status+": "+JSON.stringify(data, null, 2).substring(0,3000));
+  if(data.results){
+    data.results.forEach((res,i)=> log( (res.success?"✅":"❌")+" ["+(i+1)+"/5] "+res.uid.substring(0,8)+"... "+(res.success?"OK":"FAIL") ));
   }
-  log("\n🎉 XONG 5 UID THẬT!");
- }catch(e){log("LỖI CHUNG: "+e.message);}finally{setBusy(false);}
+ }catch(e){log("LỖI: "+e.message);}finally{setBusy(false);}
 };
 </script>
 </body>
