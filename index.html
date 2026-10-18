@@ -1,296 +1,184 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lumia 909 - A2U 5 UID Testnet</title>
+  <title>Lumia 909 - A2U Single Template</title>
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
   <style>
-    body {
-      font-family: monospace;
-      background: #0a0a0a;
-      color: #00ff66;
-      padding: 20px;
-      margin: 0;
-    }
+    body { font-family: monospace; background: #0a0a0a; color: #00ff66; padding: 20px; margin: 0; }
     h2 { line-height: 1.5; }
-    .tag {
-      background: #00ff66;
-      color: #000;
-      padding: 3px 7px;
-      border-radius: 4px;
-    }
-    #verify, #log {
-      background: #000;
-      border: 1px solid #00ff66;
-      border-radius: 6px;
-      padding: 12px;
-      margin: 12px 0;
-      overflow-wrap: anywhere;
-    }
-    #log {
-      white-space: pre-wrap;
-      height: 400px;
-      overflow-y: auto;
-      font-size: 12px;
-    }
-    button {
-      width: 100%;
-      padding: 13px;
-      margin: 8px 0;
-      border: 0;
-      border-radius: 6px;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    .tag { background: #00ff66; color: #000; padding: 3px 7px; border-radius: 4px; }
+    #verify, #log { background: #000; border: 1px solid #00ff66; border-radius: 6px; padding: 12px; margin: 12px 0; overflow-wrap: anywhere; }
+    #log { white-space: pre-wrap; height: 350px; overflow-y: auto; font-size: 12px; }
+    button { width: 100%; padding: 13px; margin: 8px 0; border: 0; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
     button:disabled { opacity: .5; cursor: not-allowed; }
+    #btnReset { background: #ffeb3b; color: #000; }
     #btnLogin { background: #00ff66; color: #000; }
     #btnPay { background: #ff00ff; color: #fff; }
-    #btnClear { background: #ffeb3b; color: #000; }
   </style>
 </head>
 <body>
-  <h2><span class="tag">TESTNET</span> Lumia 909 A2U × 5</h2>
-  <p>Pi Sandbox — Sequential UID Test</p>
+  <h2><span class="tag">TESTNET</span> Lumia 909 A2U Template</h2>
+  <p>Pi Sandbox — Single Recipient Template</p>
 
   <div id="verify">
+    <b>App:</b> lumia909<br>
     <b>Host:</b> <span id="host"></span><br>
-    <b>URL:</b> <span id="url"></span><br>
-    <b>Trạng thái:</b> <span id="status">Sẵn sàng</span>
+    <b>URL:</b> <span id="url"></span>
   </div>
 
+  <button id="btnReset">0. 🧹 XOÁ SẠCH CACHE & RESET SANDBOX</button>
   <button id="btnLogin">1. ĐĂNG NHẬP / XIN CẤP SCOPE</button>
-  <button id="btnPay">2. CHẠY A2U CHO 5 UID</button>
-  <button id="btnClear">3. XÓA LOG</button>
+  <button id="btnPay">2. GỬI A2U CHO UID MỚI</button>
 
-  <div id="log">Sẵn sàng. Hãy đăng nhập trước khi chạy A2U.</div>
+  <div id="log">Sẵn sàng mẫu template 1 UID...</div>
 
-<script>
-(() => {
-  "use strict";
+  <script>
+    // Đã thay UID mới vào đây theo yêu cầu của bro
+    const TARGET = {
+      username: "Test_User_2",
+      uid: "4a0e132a-2689-484b-8d4b-04e6391a89d9"
+    };
 
-  const AMOUNT = 1;
-  const DELAY_MS = 5000;
+    const logElement = document.getElementById("log");
+    const resetButton = document.getElementById("btnReset");
+    const loginButton = document.getElementById("btnLogin");
+    const payButton = document.getElementById("btnPay");
 
-  const TARGETS = [
-    { username: "thuongsheva", uid: "17bd5195-d292-453f-9257-e3c9d812a7a0" },
-    { username: "recipient_2", uid: "4a0e132a-2689-484b-8d4b-04e6391a89d9" },
-    { username: "recipient_3", uid: "7dc50a3e-e66d-4e06-8077-d2b5306889b1" },
-    { username: "recipient_4", uid: "0c5bbb4d-5306-48b4-b227-383d95399a53" },
-    { username: "recipient_5", uid: "f963dc03-f6f5-41ba-a3f4-54f5a8569b5c" }
-  ];
+    let currentUser = null;
+    let busy = false;
 
-  const $ = id => document.getElementById(id);
-  const logElement = $("log");
-  const loginButton = $("btnLogin");
-  const payButton = $("btnPay");
-  const clearButton = $("btnClear");
+    document.getElementById("host").textContent = window.location.hostname;
+    document.getElementById("url").textContent = window.location.href;
 
-  let currentUser = null;
-  let busy = false;
-  let sdkReady = false;
-
-  $("host").textContent = location.hostname;
-  $("url").textContent = location.href;
-
-  function log(message) {
-    logElement.textContent +=
-      "\n[" + new Date().toLocaleTimeString() + "] " + message;
-    logElement.scrollTop = logElement.scrollHeight;
-  }
-
-  function setStatus(message) {
-    $("status").textContent = message;
-  }
-
-  function setBusy(value) {
-    busy = value;
-    loginButton.disabled = value;
-    payButton.disabled = value;
-    clearButton.disabled = value;
-  }
-
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  function initPi() {
-    if (!window.Pi) {
-      throw new Error("Không tìm thấy Pi SDK. Hãy mở app trong Pi Browser.");
+    function log(message) {
+      logElement.textContent += "\n[" + new Date().toLocaleTimeString() + "] " + message;
+      logElement.scrollTop = logElement.scrollHeight;
     }
 
-    if (!sdkReady) {
-      window.Pi.init({ version: "2.0", sandbox: true });
-      sdkReady = true;
-      log("Pi SDK đã khởi tạo (Sandbox).");
+    function setBusy(value) {
+      busy = value;
+      resetButton.disabled = value;
+      loginButton.disabled = value;
+      payButton.disabled = value;
     }
-  }
 
-  async function authenticate() {
-    initPi();
-
-    log("Đang xác thực scope username, payments, wallet_address...");
-
-    const auth = await window.Pi.authenticate(
-      ["username", "payments", "wallet_address"],
-      payment => {
-        log("⚠ Có payment chưa hoàn tất: " +
-          (payment?.identifier || "không rõ"));
+    async function hardResetPiSandboxSession() {
+      log("🧹 Đang dọn sạch cache...");
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        if (window.indexedDB && window.indexedDB.databases) {
+          const dbs = await window.indexedDB.databases();
+          for (let db of dbs) { window.indexedDB.deleteDatabase(db.name); }
+        }
+        document.cookie.split(";").forEach(function(c) { 
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for(let reg of regs) { await reg.unregister(); }
+        }
+        log("✅ Đã làm sạch cache thành công!");
+      } catch (e) {
+        log("⚠ Cảnh báo dọn storage: " + e.message);
       }
-    );
-
-    if (!auth?.user?.uid) {
-      throw new Error("Không lấy được thông tin tài khoản Pi.");
     }
 
-    currentUser = auth.user;
-    log("Đăng nhập thành công: @" +
-      (currentUser.username || "(không có)"));
-    log("UID tài khoản đang đăng nhập: " + currentUser.uid);
+    async function authenticate() {
+      if (!window.Pi) throw new Error("Không tìm thấy Pi SDK.");
+      log("Đang xác thực và yêu cầu scope (username, payments, wallet_address)...");
 
-    return auth;
-  }
+      const auth = await window.Pi.authenticate(
+        ["username", "payments", "wallet_address"],
+        function (payment) {
+          log("Có payment chưa hoàn tất: " + (payment?.identifier || "không rõ"));
+        }
+      );
 
-  function getPaymentStatus(data) {
-    return data?.pi_response?.status ||
-           data?.status ||
-           data?.payment?.status ||
-           "unknown";
-  }
+      if (!auth || !auth.user || !auth.user.uid) throw new Error("Không lấy được UID.");
+      currentUser = auth.user;
+      log("Đăng nhập thành công: @" + (currentUser.username || "(không có)"));
+      return auth;
+    }
 
-  function isCompleted(data) {
-    const status = String(getPaymentStatus(data)).toLowerCase();
-    return status === "completed";
-  }
-
-  async function sendOne(target, index) {
-    log("----------------------------------------");
-    log("Giao dịch " + index + "/" + TARGETS.length);
-    log("Username nhãn: " + target.username);
-    log("UID đích: " + target.uid);
-    log("Số tiền: " + AMOUNT + " Pi Testnet");
-    log("Đang gửi request đến /api/a2u...");
-
-    const response = await fetch("/api/a2u", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      },
-      body: JSON.stringify({
-        uid: target.uid,
-        username: target.username,
-        amount: AMOUNT
-      })
+    window.addEventListener("load", function () {
+      if (!window.Pi) return;
+      try {
+        window.Pi.init({ version: "2.0", sandbox: true });
+        log("Pi SDK đã khởi tạo.");
+      } catch (error) {
+        log("Lỗi khởi tạo SDK: " + error.message);
+      }
     });
 
-    const raw = await response.text();
-    let data;
+    resetButton.addEventListener("click", async function () {
+      if (busy) return;
+      setBusy(true);
+      await hardResetPiSandboxSession();
+      setTimeout(() => {
+        window.location.href = window.location.protocol + "//" + window.location.host + window.location.pathname + "?reset=" + Date.now();
+      }, 1000);
+    });
 
-    try {
-      data = raw ? JSON.parse(raw) : {};
-    } catch {
-      data = { raw_response: raw };
-    }
-
-    log("HTTP status: " + response.status);
-    log("Phản hồi server: " + JSON.stringify(data, null, 2));
-
-    if (!response.ok || data.success === false) {
-      throw new Error(
-        "UID thứ " + index + " thất bại. Đã dừng hàng đợi để kiểm tra."
-      );
-    }
-
-    if (!isCompleted(data)) {
-      throw new Error(
-        "UID thứ " + index +
-        " chưa có trạng thái completed. Đã dừng để tránh gửi tiếp khi trạng thái chưa rõ."
-      );
-    }
-
-    log("✅ Pi API báo completed cho UID thứ " + index + ".");
-  }
-
-  loginButton.addEventListener("click", async () => {
-    if (busy) return;
-    setBusy(true);
-
-    try {
-      await authenticate();
-      setStatus("Đã đăng nhập");
-    } catch (error) {
-      log("❌ LỖI ĐĂNG NHẬP: " + error.message);
-      setStatus("Lỗi đăng nhập");
-    } finally {
-      setBusy(false);
-    }
-  });
-
-  payButton.addEventListener("click", async () => {
-    if (busy) return;
-
-    const confirmed = window.confirm(
-      "Gửi 5 yêu cầu A2U, mỗi UID 1 Pi Testnet?\n" +
-      "UID đầu tiên sẽ được gửi lại dù đã từng test thành công.\n" +
-      "Chỉ tiếp tục nếu bạn có quyền thực hiện các giao dịch này."
-    );
-
-    if (!confirmed) return;
-
-    setBusy(true);
-    let completedCount = 0;
-
-    try {
-      // Xác thực một lần; không xóa session trước từng giao dịch.
-      await authenticate();
-
-      setStatus("Đang chạy hàng đợi");
-
-      for (let i = 0; i < TARGETS.length; i++) {
-        const target = TARGETS[i];
-
-        // Chờ giữa các giao dịch, không chờ trước giao dịch đầu tiên.
-        if (i > 0) {
-          log("⏳ Chờ " + (DELAY_MS / 1000) +
-              " giây trước giao dịch tiếp theo...");
-          await sleep(DELAY_MS);
-        }
-
-        await sendOne(target, i + 1);
-        completedCount++;
-        setStatus("Hoàn tất " + completedCount + "/5");
+    loginButton.addEventListener("click", async function () {
+      if (busy) return;
+      setBusy(true);
+      try {
+        await hardResetPiSandboxSession();
+        await authenticate();
+      } catch (error) {
+        log("LỖI ĐĂNG NHẬP: " + error.message);
+      } finally {
+        setBusy(false);
       }
+    });
 
-      log("----------------------------------------");
-      log("🎉 CẢ 5 GIAO DỊCH ĐỀU TRẢ VỀ completed.");
-      setStatus("Hoàn tất 5/5");
-    } catch (error) {
-      log("🛑 HÀNG ĐỢI ĐÃ DỪNG: " + error.message);
-      log("Đã nhận trạng thái completed cho " +
-          completedCount + "/" + TARGETS.length + " giao dịch trong lượt này.");
-      log("Hãy kiểm tra lịch sử giao dịch trước khi chạy lại.");
-      setStatus("Dừng — cần kiểm tra");
-    } finally {
-      setBusy(false);
-    }
-  });
+    payButton.addEventListener("click", async function () {
+      if (busy) return;
+      setBusy(true);
 
-  clearButton.addEventListener("click", () => {
-    if (busy) return;
-    logElement.textContent = "Đã xóa log.";
-  });
+      try {
+        await hardResetPiSandboxSession();
+        await authenticate();
 
-  window.addEventListener("load", () => {
-    try {
-      initPi();
-    } catch (error) {
-      log("⚠ " + error.message);
-    }
-  });
-})();
-</script>
+        log("--------------------------------");
+        log("Người gửi: @" + (currentUser.username || "(không có)"));
+        log("UID đích: " + TARGET.username + " (" + TARGET.uid + ")");
+        log("Đang gửi yêu cầu A2U tới /api/a2u...");
+
+        const response = await fetch("/api/a2u", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({
+            uid: TARGET.uid,
+            username: TARGET.username,
+            amount: 1
+          })
+        });
+
+        const raw = await response.text();
+        let data;
+        try { data = JSON.parse(raw); } catch { data = { raw_response: raw }; }
+
+        log("HTTP status: " + response.status);
+        log("Phản hồi server: " + JSON.stringify(data, null, 2));
+
+        if (!response.ok) {
+          log("❌ YÊU CẦU THẤT BẠI");
+        } else {
+          log("✅ THÀNH CÔNG! Pi API đã chấp nhận yêu cầu A2U cho UID mới.");
+        }
+      } catch (error) {
+        log("LỖI: " + error.message);
+      } finally {
+        setBusy(false);
+      }
+    });
+  </script>
 </body>
 </html>
