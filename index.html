@@ -20,7 +20,7 @@
 </head>
 <body>
   <h2><span class="tag">TESTNET</span> Lumia 909 A2U Template</h2>
-  <p>Pi Sandbox — Single Recipient Template</p>
+  <p>Pi Sandbox — Single Recipient Template (UID 2)</p>
 
   <div id="verify">
     <b>App:</b> lumia909<br>
@@ -28,14 +28,14 @@
     <b>URL:</b> <span id="url"></span>
   </div>
 
-  <button id="btnReset">0. 🧹 XOÁ SẠCH CACHE & RESET SANDBOX</button>
+  <button id="btnReset">0. 🧹 TẨY TRẮNG SÂU & RESET SANDBOX</button>
   <button id="btnLogin">1. ĐĂNG NHẬP / XIN CẤP SCOPE</button>
-  <button id="btnPay">2. GỬI A2U CHO UID MỚI</button>
+  <button id="btnPay">2. GỬI A2U CHO UID THỨ 2</button>
 
-  <div id="log">Sẵn sàng mẫu template 1 UID...</div>
+  <div id="log">Sẵn sàng mẫu template UID thứ 2...</div>
 
   <script>
-    // Đã thay UID mới vào đây theo yêu cầu của bro
+    // Cấu hình UID thứ 2 chính xác theo yêu cầu
     const TARGET = {
       username: "Test_User_2",
       uid: "4a0e132a-2689-484b-8d4b-04e6391a89d9"
@@ -64,23 +64,44 @@
       payButton.disabled = value;
     }
 
-    async function hardResetPiSandboxSession() {
-      log("🧹 Đang dọn sạch cache...");
+    // Hàm tẩy trắng sâu 4 tầng bộ nhớ của Pi Browser (Local, IndexedDB, ServiceWorker, Caches)
+    async function deepCleanPiSandbox() {
+      log("🧹 Đang thực hiện tẩy trắng sâu hệ thống Sandbox...");
       try {
         localStorage.clear();
         sessionStorage.clear();
+
         if (window.indexedDB && window.indexedDB.databases) {
           const dbs = await window.indexedDB.databases();
-          for (let db of dbs) { window.indexedDB.deleteDatabase(db.name); }
+          for (let db of dbs) {
+            if (db.name) {
+              window.indexedDB.deleteDatabase(db.name);
+              log("🗑️ Đã xóa IndexedDB: " + db.name);
+            }
+          }
         }
+
         document.cookie.split(";").forEach(function(c) { 
           document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
         });
+
         if ('serviceWorker' in navigator) {
           const regs = await navigator.serviceWorker.getRegistrations();
-          for(let reg of regs) { await reg.unregister(); }
+          for(let reg of regs) { 
+            await reg.unregister(); 
+            log("🗑️ Đã gỡ Service Worker");
+          }
         }
-        log("✅ Đã làm sạch cache thành công!");
+
+        if (window.caches) {
+          const keys = await window.caches.keys();
+          for (let key of keys) {
+            await window.caches.delete(key);
+            log("🗑️ Đã xóa Cache Storage: " + key);
+          }
+        }
+
+        log("✅ Tẩy trắng sâu hoàn tất!");
       } catch (e) {
         log("⚠ Cảnh báo dọn storage: " + e.message);
       }
@@ -93,7 +114,7 @@
       const auth = await window.Pi.authenticate(
         ["username", "payments", "wallet_address"],
         function (payment) {
-          log("Có payment chưa hoàn tất: " + (payment?.identifier || "không rõ"));
+          log("⚠ Phát hiện payment chưa hoàn tất: " + (payment?.identifier || "không rõ"));
         }
       );
 
@@ -116,7 +137,7 @@
     resetButton.addEventListener("click", async function () {
       if (busy) return;
       setBusy(true);
-      await hardResetPiSandboxSession();
+      await deepCleanPiSandbox();
       setTimeout(() => {
         window.location.href = window.location.protocol + "//" + window.location.host + window.location.pathname + "?reset=" + Date.now();
       }, 1000);
@@ -126,7 +147,7 @@
       if (busy) return;
       setBusy(true);
       try {
-        await hardResetPiSandboxSession();
+        await deepCleanPiSandbox();
         await authenticate();
       } catch (error) {
         log("LỖI ĐĂNG NHẬP: " + error.message);
@@ -140,12 +161,13 @@
       setBusy(true);
 
       try {
-        await hardResetPiSandboxSession();
+        // Tự động dọn sâu và xác thực lại trước khi bắn request để đảm bảo session mới tinh
+        await deepCleanPiSandbox();
         await authenticate();
 
         log("--------------------------------");
         log("Người gửi: @" + (currentUser.username || "(không có)"));
-        log("UID đích: " + TARGET.username + " (" + TARGET.uid + ")");
+        log("UID đích (Thứ 2): " + TARGET.username + " (" + TARGET.uid + ")");
         log("Đang gửi yêu cầu A2U tới /api/a2u...");
 
         const response = await fetch("/api/a2u", {
@@ -171,7 +193,7 @@
         if (!response.ok) {
           log("❌ YÊU CẦU THẤT BẠI");
         } else {
-          log("✅ THÀNH CÔNG! Pi API đã chấp nhận yêu cầu A2U cho UID mới.");
+          log("✅ THÀNH CÔNG! Pi API đã chấp nhận yêu cầu A2U cho UID thứ 2.");
         }
       } catch (error) {
         log("LỖI: " + error.message);
