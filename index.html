@@ -1,144 +1,204 @@
-<!-- LUMIA 909 - TESTNET BUILD + SINGLE UID TEST -->
+<!-- LUMIA 909 - TESTNET BUILD + CHATGPT OPTIMIZED -->
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lumia 909 - TESTNET - SANDBOX</title>
-<script src="https://sdk.minepi.com/pi-sdk.js"></script>
-<style>
-body{font-family:monospace;background:#0a0a0a;color:#0f0;padding:15px;padding-top:50px;margin:0}
-h2{margin-top:10px;font-size:18px;line-height:1.4}
-h2 span.main{color:#000;background:#ff9800;padding:3px 8px;border-radius:4px}
-h2 span.test{color:#000;background:#0f0;padding:3px 8px;border-radius:4px;margin-left:5px}
-button{padding:12px 18px;margin:8px 5px;font-size:15px;cursor:pointer;font-weight:bold;border-radius:6px;width:100%}
-#verify{border:1px dashed #ff0;background:#1a1a00;color:#ff0;padding:10px;margin:12px 0;font-size:12px;border-radius:6px;word-break:break-all}
-#verify b{color:#fff}
-#log{white-space:pre-wrap;background:#000;padding:12px;border:1px solid #0f0;height:400px;overflow:auto;font-size:12px;border-radius:6px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lumia 909 - A2U Sandbox Test</title>
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <style>
+    body { font-family: monospace; background: #0a0a0a; color: #00ff66; padding: 20px; margin: 0; }
+    h2 { line-height: 1.5; }
+    .tag { background: #00ff66; color: #000; padding: 3px 7px; border-radius: 4px; }
+    #verify, #log { background: #000; border: 1px solid #00ff66; border-radius: 6px; padding: 12px; margin: 12px 0; overflow-wrap: anywhere; }
+    #log { white-space: pre-wrap; height: 350px; overflow-y: auto; font-size: 12px; }
+    button { width: 100%; padding: 13px; margin: 8px 0; border: 0; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    #btnReset { background: #ffeb3b; color: #000; }
+    #btnLogin { background: #00ff66; color: #000; }
+    #btnPay { background: #ff00ff; color: #fff; }
+  </style>
 </head>
 <body>
-<h2>🚀 <span class="main">TESTNET</span> Lumia 909 <span class="test">SANDBOX ENABLED</span></h2>
-<p style="color:#aaa;font-size:12px;margin:5px 0">App TESTNET - Hard Reset & Single UID A2U Test</p>
-<div id="verify">
-<b>🔍 XÁC MINH DỰ ÁN:</b><br>
-✅ App ID: <b>lumia909</b> (TESTNET)<br>
-✅ Host: <span id="curHost" style="color:#0ff"></span><br>
-✅ Current URL: <span id="curUrl" style="color:#0ff">đang tải...</span>
-</div>
-<button onclick="forceResetSandboxCache()" style="background:#ffeb3b;color:#000;margin-bottom:10px">0. 🧹 XOÁ SẠCH CACHE & RESET SANDBOX</button>
-<button id="btnLogin" style="background:#0f0;color:#000;margin-bottom:10px">1. ĐĂNG NHẬP LẠI ĐỂ TẠO SESSION MỚI</button>
-<button id="btnPay" style="background:#ff00ff;color:#fff">2. BẮN TEST 1 UID THẬT (thuongsheva)</button>
-<div id="log">Sẵn sàng! Hãy bấm nút '2' để chạy tiến trình test...</div>
+  <h2><span class="tag">TESTNET</span> Lumia 909 A2U</h2>
+  <p>Pi Sandbox — Hard Reset & Single Diagnostic</p>
 
-<script>
-const Pi = window.Pi;
-Pi.init({version: "2.0", sandbox: true});
+  <div id="verify">
+    <b>App:</b> lumia909<br>
+    <b>Host:</b> <span id="host"></span><br>
+    <b>URL:</b> <span id="url"></span>
+  </div>
 
-document.getElementById('curUrl').textContent = window.location.href;
-document.getElementById('curHost').textContent = window.location.hostname;
+  <button id="btnReset">0. 🧹 XOÁ SẠCH CACHE & RESET SANDBOX</button>
+  <button id="btnLogin">1. ĐĂNG NHẬP / XIN CẤP SCOPE</button>
+  <button id="btnPay">2. GỬI 1 YÊU CẦU A2U TEST (thuongsheva)</button>
 
-// Chỉ giữ lại đúng 1 UID của tài khoản thuongsheva lấy trực tiếp từ Pi.authenticate()
-const TARGET_UIDS = [
-  {username: "thuongsheva", uid: "17bd5195-d292-453f-9257-e3c9d812a7a0"}
-];
+  <div id="log">Sẵn sàng. Hãy bấm nút 0 hoặc nút 2 để chạy tiến trình...</div>
 
-function addLog(m) {
-  let el = document.getElementById('log');
-  el.textContent += "\n[" + new Date().toLocaleTimeString() + "] " + m;
-  el.scrollTop = el.scrollHeight;
-}
+  <script>
+    const TARGET = {
+      username: "thuongsheva",
+      uid: "17bd5195-d292-453f-9257-e3c9d812a7a0"
+    };
 
-// Hàm Hard Reset Sandbox cực mạnh bằng code
-async function hardResetPiSandboxSession() {
-  addLog("🧹 Đang thực hiện Hard Reset toàn bộ Cache và Session ngầm...");
-  try {
-    localStorage.clear();
-    sessionStorage.clear();
-    if (window.indexedDB && window.indexedDB.databases) {
-      const dbs = await window.indexedDB.databases();
-      for (let db of dbs) {
-        window.indexedDB.deleteDatabase(db.name);
+    const logElement = document.getElementById("log");
+    const resetButton = document.getElementById("btnReset");
+    const loginButton = document.getElementById("btnLogin");
+    const payButton = document.getElementById("btnPay");
+
+    let currentUser = null;
+    let busy = false;
+
+    document.getElementById("host").textContent = window.location.hostname;
+    document.getElementById("url").textContent = window.location.href;
+
+    function log(message) {
+      logElement.textContent += "\n[" + new Date().toLocaleTimeString() + "] " + message;
+      logElement.scrollTop = logElement.scrollHeight;
+    }
+
+    function setBusy(value) {
+      busy = value;
+      resetButton.disabled = value;
+      loginButton.disabled = value;
+      payButton.disabled = value;
+    }
+
+    // Hàm Hard Reset triệt để chống ngậm cache của Pi Browser
+    async function hardResetPiSandboxSession() {
+      log("🧹 Đang dọn sạch toàn bộ LocalStorage, IndexedDB và Service Workers...");
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        if (window.indexedDB && window.indexedDB.databases) {
+          const dbs = await window.indexedDB.databases();
+          for (let db of dbs) {
+            window.indexedDB.deleteDatabase(db.name);
+          }
+        }
+        document.cookie.split(";").forEach(function(c) { 
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for(let reg of regs) { await reg.unregister(); }
+        }
+        log("✅ Đã làm sạch bộ nhớ đệm thành công!");
+      } catch (e) {
+        log("⚠ Cảnh báo dọn storage: " + e.message);
       }
     }
-    document.cookie.split(";").forEach(function(c) { 
-      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-    });
-    if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for(let registration of registrations) {
-        await registration.unregister();
+
+    async function authenticate() {
+      if (!window.Pi) {
+        throw new Error("Không tìm thấy Pi SDK. Hãy mở app bằng Pi Browser.");
       }
+
+      log("Đang xác thực và yêu cầu scope (username, payments, wallet_address)...");
+
+      const auth = await window.Pi.authenticate(
+        ["username", "payments", "wallet_address"],
+        function (payment) {
+          log("Có payment chưa hoàn tất: " + (payment?.identifier || "không rõ"));
+        }
+      );
+
+      if (!auth || !auth.user || !auth.user.uid) {
+        throw new Error("Pi SDK không trả về UID người dùng.");
+      }
+
+      currentUser = auth.user;
+      log("Đăng nhập thành công!");
+      log("Username: @" + (currentUser.username || "(không có)"));
+      log("UID hiện tại: " + currentUser.uid);
+
+      return auth;
     }
-    addLog("✅ Đã dọn sạch hoàn toàn bộ nhớ đệm Pi Browser!");
-  } catch (e) {
-    addLog("⚠ Lỗi dọn dẹp storage: " + e.message);
-  }
-}
 
-async function forceResetSandboxCache() {
-  await hardResetPiSandboxSession();
-  setTimeout(() => {
-    const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    window.location.href = baseUrl + "?force_sandbox_reset=" + Date.now();
-  }, 1000);
-}
-
-document.getElementById('btnLogin').onclick = async () => {
-  try {
-    await hardResetPiSandboxSession();
-    addLog("🔄 Đang xin cấp Token Sandbox mới từ Pi Server...");
-    let auth = await Pi.authenticate(['username', 'payments'], (p) => { addLog("Incomplete: " + p.identifier); });
-    addLog("----------------------------------------");
-    addLog("✅ TẠO SESSION SANDBOX MỚI THÀNH CÔNG!");
-    addLog("👉 UID CỦA BẠN: " + auth.user.uid);
-    addLog("👉 USERNAME: @" + auth.user.username);
-    addLog("----------------------------------------");
-  } catch (e) {
-    addLog("❌ LỖI LOGIN: " + e.message);
-  }
-};
-
-document.getElementById('btnPay').onclick = async () => {
-  addLog("🚀 BẮT ĐẦU TIẾN TRÌNH TEST 1 UID THẬT...");
-  
-  await hardResetPiSandboxSession();
-
-  try {
-    let auth = await Pi.authenticate(['username', 'payments'], (incomplete) => {
-      addLog("⚠ Phát hiện giao dịch treo: " + incomplete.identifier);
-    });
-    addLog("🔄 Auto-Refresh Session thành công cho: @" + auth.user.username);
-  } catch (e) {
-    addLog("⚠ Cảnh báo Refresh Session: " + e.message);
-  }
-
-  let u = TARGET_UIDS[0];
-  addLog(`⏳ Đang bắn A2U tới UID: ${u.username} (${u.uid})`);
-  
-  try {
-    let r = await fetch('/api/a2u', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({uid: u.uid, username: u.username, amount: 1})
+    window.addEventListener("load", function () {
+      if (!window.Pi) {
+        log("CẢNH BÁO: Pi SDK chưa sẵn sàng.");
+        return;
+      }
+      try {
+        window.Pi.init({ version: "2.0", sandbox: true });
+        log("Pi SDK đã khởi tạo với sandbox=true.");
+      } catch (error) {
+        log("Lỗi khởi tạo SDK: " + error.message);
+      }
     });
 
-    let res = await r.json();
-    
-    if (r.ok) {
-      addLog(`✅ THÀNH CÔNG! PaymentID: ${res.paymentId || JSON.stringify(res)}`);
-    } else {
-      addLog(`❌ THẤT BẠI (HTTP ${r.status}): ${JSON.stringify(res)}`);
-    }
-  } catch (err) {
-    addLog(`❌ Lỗi kết nối: ${err.message}`);
-  }
-  
-  addLog("🎉 HOÀN THÀNH TIẾN TRÌNH TEST!");
-};
-</script>
+    resetButton.addEventListener("click", async function () {
+      if (busy) return;
+      setBusy(true);
+      await hardResetPiSandboxSession();
+      setTimeout(() => {
+        window.location.href = window.location.protocol + "//" + window.location.host + window.location.pathname + "?reset=" + Date.now();
+      }, 1000);
+    });
+
+    loginButton.addEventListener("click", async function () {
+      if (busy) return;
+      setBusy(true);
+      try {
+        await hardResetPiSandboxSession();
+        await authenticate();
+      } catch (error) {
+        log("LỖI ĐĂNG NHẬP: " + error.message);
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    payButton.addEventListener("click", async function () {
+      if (busy) return;
+      setBusy(true);
+
+      try {
+        // Tự động hard reset và lấy session sạch trước khi bắn A2U
+        await hardResetPiSandboxSession();
+        await authenticate();
+
+        log("--------------------------------");
+        log("Người gửi: @" + (currentUser.username || "(không có)"));
+        log("UID đích: " + TARGET.username + " (" + TARGET.uid + ")");
+        log("Đang gửi yêu cầu A2U tới /api/a2u...");
+
+        const response = await fetch("/api/a2u", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({
+            uid: TARGET.uid,
+            username: TARGET.username,
+            amount: 1
+          })
+        });
+
+        const raw = await response.text();
+        let data;
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          data = { raw_response: raw };
+        }
+
+        log("HTTP status: " + response.status);
+        log("Phản hồi server: " + JSON.stringify(data, null, 2));
+
+        if (!response.ok) {
+          log("❌ YÊU CẦU THẤT BẠI — xem lỗi trả về phía trên.");
+        } else {
+          log("✅ THÀNH CÔNG! Pi API đã chấp nhận yêu cầu A2U.");
+        }
+      } catch (error) {
+        log("LỖI: " + error.message);
+      } finally {
+        setBusy(false);
+      }
+    });
+  </script>
 </body>
 </html>
