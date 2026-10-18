@@ -1,27 +1,27 @@
-<!-- LUMIA 909 - BATCH PAY 5 UIDS -->
+<!-- LUMIA 909 - BATCH PAY FIX ONGOING PAYMENT -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lumia 909 - A2U Batch Test</title>
+  <title>Lumia 909 - A2U Sandbox Batch</title>
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
   <style>
     body { font-family: monospace; background: #0a0a0a; color: #00ff66; padding: 20px; margin: 0; }
     h2 { line-height: 1.5; }
-    .tag { background: #ff00ff; color: #fff; padding: 3px 7px; border-radius: 4px; }
+    .tag { background: #00ff66; color: #000; padding: 3px 7px; border-radius: 4px; }
     #verify, #log { background: #000; border: 1px solid #00ff66; border-radius: 6px; padding: 12px; margin: 12px 0; overflow-wrap: anywhere; }
     #log { white-space: pre-wrap; height: 380px; overflow-y: auto; font-size: 12px; }
     button { width: 100%; padding: 13px; margin: 8px 0; border: 0; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
     button:disabled { opacity: .5; cursor: not-allowed; }
     #btnReset { background: #ffeb3b; color: #000; }
     #btnLogin { background: #00ff66; color: #000; }
-    #btnBatchPay { background: #ff00ff; color: #fff; }
+    #btnPay { background: #ff00ff; color: #fff; }
   </style>
 </head>
 <body>
-  <h2><span class="tag">BATCH PAY</span> Lumia 909 A2U</h2>
-  <p>Pi Sandbox — 5 UIDs Sequential Batch Flow</p>
+  <h2><span class="tag">TESTNET</span> Lumia 909 Batch Pay</h2>
+  <p>Pi Sandbox — Sequential Payment Flow</p>
 
   <div id="verify">
     <b>App:</b> lumia909<br>
@@ -31,24 +31,23 @@
 
   <button id="btnReset">0. 🧹 XOÁ SẠCH CACHE & RESET SANDBOX</button>
   <button id="btnLogin">1. ĐĂNG NHẬP / XIN CẤP SCOPE</button>
-  <button id="btnBatchPay">2. BẮN DỒN 5 UID TESTNET (BATCH PAY)</button>
+  <button id="btnPay">2. BẮN DỒN 5 UID TESTNET</button>
 
-  <div id="log">Sẵn sàng! Hãy bấm nút 2 để chạy tiến trình Batch Pay 5 UID...</div>
+  <div id="log">Sẵn sàng. Hãy bấm nút 2 để chạy test...</div>
 
   <script>
-    // Danh sách 5 UID Testnet (Bro có thể thay thế chính xác 5 UID thật của anh em vào đây)
     const TARGET_UIDS = [
       { username: "thuongsheva", uid: "17bd5195-d292-453f-9257-e3c9d812a7a0" },
-      { username: "user_2", uid: "4a0e132a-2689-484b-8d4b-04e6391a89d9" }, // Thay UID thật số 2
-      { username: "user_3", uid: "7dc50a3e-e66d-4e06-8077-d2b5306889b1" }, // Thay UID thật số 3
-      { username: "user_4", uid: "0c5bbb4d-5306-48b4-b227-383d95399a53" }, // Thay UID thật số 4
-      { username: "user_5", uid: "f963dc03-f6f5-41ba-a3f4-54f5a8569b5c" }  // Thay UID thật số 5
+      { username: "user_2", uid: "4a0e132a-2689-484b-8d4b-04e6391a89d9" },
+      { username: "user_3", uid: "7dc50a3e-e66d-4e06-8077-d2b5306889b1" },
+      { username: "user_4", uid: "0c5bbb4d-5306-48b4-b227-383d95399a53" },
+      { username: "user_5", uid: "f963dc03-f6f5-41ba-a3f4-54f5a8569b5c" }
     ];
 
     const logElement = document.getElementById("log");
     const resetButton = document.getElementById("btnReset");
     const loginButton = document.getElementById("btnLogin");
-    const batchButton = document.getElementById("btnBatchPay");
+    const payButton = document.getElementById("btnPay");
 
     let currentUser = null;
     let busy = false;
@@ -65,11 +64,11 @@
       busy = value;
       resetButton.disabled = value;
       loginButton.disabled = value;
-      batchButton.disabled = value;
+      payButton.disabled = value;
     }
 
     async function hardResetPiSandboxSession() {
-      log("🧹 Đang dọn sạch toàn bộ LocalStorage, IndexedDB và Service Workers...");
+      log("🧹 Đang dọn sạch bộ nhớ đệm...");
       try {
         localStorage.clear();
         sessionStorage.clear();
@@ -84,15 +83,15 @@
           const regs = await navigator.serviceWorker.getRegistrations();
           for(let reg of regs) { await reg.unregister(); }
         }
-        log("✅ Đã làm sạch bộ nhớ đệm thành công!");
+        log("✅ Đã làm sạch cache thành công!");
       } catch (e) {
         log("⚠ Cảnh báo dọn storage: " + e.message);
       }
     }
 
     async function authenticate() {
-      if (!window.Pi) throw new Error("Không tìm thấy Pi SDK. Hãy mở app bằng Pi Browser.");
-      log("Đang xác thực và yêu cầu scope (username, payments, wallet_address)...");
+      if (!window.Pi) throw new Error("Không tìm thấy Pi SDK.");
+      log("Đang xác thực và yêu cầu scope...");
 
       const auth = await window.Pi.authenticate(
         ["username", "payments", "wallet_address"],
@@ -101,17 +100,17 @@
         }
       );
 
-      if (!auth || !auth.user || !auth.user.uid) throw new Error("Pi SDK không trả về UID người dùng.");
+      if (!auth || !auth.user || !auth.user.uid) throw new Error("Không lấy được UID.");
       currentUser = auth.user;
-      log("Đăng nhập thành công! Username: @" + currentUser.username + " | UID: " + currentUser.uid);
+      log("Đăng nhập thành công: @" + (currentUser.username || "(không có)"));
       return auth;
     }
 
     window.addEventListener("load", function () {
-      if (!window.Pi) { log("CẢNH BÁO: Pi SDK chưa sẵn sàng."); return; }
+      if (!window.Pi) return;
       try {
         window.Pi.init({ version: "2.0", sandbox: true });
-        log("Pi SDK đã khởi tạo với sandbox=true.");
+        log("Pi SDK đã khởi tạo.");
       } catch (error) {
         log("Lỗi khởi tạo SDK: " + error.message);
       }
@@ -139,7 +138,7 @@
       }
     });
 
-    batchButton.addEventListener("click", async function () {
+    payButton.addEventListener("click", async function () {
       if (busy) return;
       setBusy(true);
 
@@ -148,11 +147,11 @@
         await authenticate();
 
         log("----------------------------------------");
-        log("🚀 BẮT ĐẦU TIẾN TRÌNH BATCH PAY CHO 5 UID...");
+        log("🚀 BẮT ĐẦU TIẾN TRÌNH BATCH PAY 5 UID...");
 
         for (let i = 0; i < TARGET_UIDS.length; i++) {
           let u = TARGET_UIDS[i];
-          log(`\n[${i+1}/5] Đang bắn A2U tới: @${u.username} (${u.uid})`);
+          log(`\n[${i+1}/5] Đang gửi A2U tới: @${u.username} (${u.uid})`);
 
           const response = await fetch("/api/a2u", {
             method: "POST",
@@ -169,24 +168,25 @@
 
           const raw = await response.text();
           let data;
-          try {
-            data = JSON.parse(raw);
-          } catch {
-            data = { raw_response: raw };
-          }
+          try { data = JSON.parse(raw); } catch { data = { raw_response: raw }; }
 
           if (!response.ok) {
             log(`❌ [${i+1}/5] THẤT BẠI (HTTP ${response.status}): ${JSON.stringify(data)}`);
+            // Nếu bị nghẽn ongoing_payment, dừng lại xử lý để không bị lỗi dây chuyền
+            if (data.details?.error === "ongoing_payment_found") {
+              log("⚠ Phát hiện giao dịch chưa đóng! Đang dừng lại 2 giây...");
+              await new Promise(r => setTimeout(r, 2000));
+            }
           } else {
             let pId = data.pi_response?.identifier || data.identifier || "Thành công";
-            log(`✅ [${i+1}/5] THÀNH CÔNG! PaymentID: ${pId}`);
+            log(`✅ [${i+1}/5] TẠO A2U THÀNH CÔNG! ID: ${pId}`);
           }
 
-          // Chờ 1 giây giữa các request để tránh quá tải API
-          await new Promise(r => setTimeout(r, 1000));
+          // Chờ 2.5 giây giữa các lệnh bắn để Pi Server giải phóng giao dịch trước đó
+          await new Promise(r => setTimeout(r, 2500));
         }
 
-        log("\n🎉 HOÀN TẤT TOÀN BỘ TIẾN TRÌNH BATCH PAY 5 UID!");
+        log("\n🎉 HOÀN TẤT TIẾN TRÌNH BATCH PAY!");
       } catch (error) {
         log("LỖI BATCH: " + error.message);
       } finally {
