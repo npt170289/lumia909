@@ -1,15 +1,15 @@
-<!-- LUMIA 909 - MAINNET BUILD + AUTO REFRESH SANDBOX v12 -->
+<!-- LUMIA 909 - TESTNET BUILD + HARD RESET & BATCH PAY A2U -->
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lumia 909 - MAINNET - SANDBOX</title>
+<title>Lumia 909 - TESTNET - SANDBOX</title>
 <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 <style>
 body{font-family:monospace;background:#0a0a0a;color:#0f0;padding:15px;padding-top:50px;margin:0}
 h2{margin-top:10px;font-size:18px;line-height:1.4}
-h2 span.main{color:#fff;background:red;padding:3px 8px;border-radius:4px}
+h2 span.main{color:#000;background:#ff9800;padding:3px 8px;border-radius:4px}
 h2 span.test{color:#000;background:#0f0;padding:3px 8px;border-radius:4px;margin-left:5px}
 button{padding:12px 18px;margin:8px 5px;font-size:15px;cursor:pointer;font-weight:bold;border-radius:6px;width:100%}
 #verify{border:1px dashed #ff0;background:#1a1a00;color:#ff0;padding:10px;margin:12px 0;font-size:12px;border-radius:6px;word-break:break-all}
@@ -18,18 +18,18 @@ button{padding:12px 18px;margin:8px 5px;font-size:15px;cursor:pointer;font-weigh
 </style>
 </head>
 <body>
-<h2>🚀 <span class="main">MAINNET</span> Lumia 909 <span class="test">SANDBOX ENABLED</span></h2>
-<p style="color:#aaa;font-size:12px;margin:5px 0">App MAINNET - Auto Refresh & Pay Test</p>
+<h2>🚀 <span class="main">TESTNET</span> Lumia 909 <span class="test">SANDBOX ENABLED</span></h2>
+<p style="color:#aaa;font-size:12px;margin:5px 0">App TESTNET - Hard Reset & Batch 5 UIDs A2U</p>
 <div id="verify">
 <b>🔍 XÁC MINH DỰ ÁN:</b><br>
-✅ App ID: <b>lumia909</b> (MAINNET)<br>
+✅ App ID: <b>lumia909</b> (TESTNET)<br>
 ✅ Host: <span id="curHost" style="color:#0ff"></span><br>
 ✅ Current URL: <span id="curUrl" style="color:#0ff">đang tải...</span>
 </div>
 <button onclick="forceResetSandboxCache()" style="background:#ffeb3b;color:#000;margin-bottom:10px">0. 🧹 XOÁ SẠCH CACHE & RESET SANDBOX</button>
 <button id="btnLogin" style="background:#0f0;color:#000;margin-bottom:10px">1. ĐĂNG NHẬP LẠI ĐỂ TẠO SESSION MỚI</button>
-<button id="btnPay" style="background:#ff00ff;color:#fff">2. BẮN 5 UID MAINNET (TEST PAY + AUTO REFRESH)</button>
-<div id="log">Sẵn sàng! Hãy bấm nút '0. XOÁ SẠCH CACHE' trước khi test...</div>
+<button id="btnPay" style="background:#ff00ff;color:#fff">2. BẮN DỒN 5 UID TESTNET (BATCH PAY)</button>
+<div id="log">Sẵn sàng! Hãy bấm nút '2' để chạy tiến trình dọn dẹp và bắn 5 UID...</div>
 
 <script>
 const Pi = window.Pi;
@@ -38,8 +38,14 @@ Pi.init({version: "2.0", sandbox: true});
 document.getElementById('curUrl').textContent = window.location.href;
 document.getElementById('curHost').textContent = window.location.hostname;
 
+// 5 UID chính xác từ 5 thiết bị khác nhau
 const TARGET_UIDS = [
-  {username: "user_1", uid: "17bd5195-d292-453f-9257-e3c9d812a7a0"},];
+  {username: "user_1", uid: "17bd5195-d292-453f-9257-e3c9d812a7a0"},
+  {username: "user_2", uid: "4a0e132a-2689-484b-8d4b-04e6391a89d9"},
+  {username: "user_3", uid: "7dc50a3e-e66d-4e06-8077-d2b5306889b1"},
+  {username: "user_4", uid: "0c5bbb4d-5306-48b4-b227-383d95399a53"},
+  {username: "user_5", uid: "f963dc03-f6f5-41ba-a3f4-54f5a8569b5c"}
+];
 
 function addLog(m) {
   let el = document.getElementById('log');
@@ -47,8 +53,9 @@ function addLog(m) {
   el.scrollTop = el.scrollHeight;
 }
 
-async function forceResetSandboxCache() {
-  addLog("🧹 Đang kích hoạt tiến trình làm sạch triệt để...");
+// Hàm Hard Reset Sandbox cực mạnh bằng code để trị tận gốc việc ngậm phiên của Pi Browser
+async function hardResetPiSandboxSession() {
+  addLog("🧹 Đang thực hiện Hard Reset toàn bộ Cache và Session ngầm...");
   try {
     localStorage.clear();
     sessionStorage.clear();
@@ -61,10 +68,20 @@ async function forceResetSandboxCache() {
     document.cookie.split(";").forEach(function(c) { 
       document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-    addLog("✅ Đã xóa sạch dữ liệu đệm! Đang reload lại trang...");
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for(let registration of registrations) {
+        await registration.unregister();
+      }
+    }
+    addLog("✅ Đã dọn sạch hoàn toàn bộ nhớ đệm Pi Browser!");
   } catch (e) {
-    addLog("⚠ Lỗi nhẹ khi dọn dẹp: " + e.message);
+    addLog("⚠ Lỗi dọn dẹp storage: " + e.message);
   }
+}
+
+async function forceResetSandboxCache() {
+  await hardResetPiSandboxSession();
   setTimeout(() => {
     const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
     window.location.href = baseUrl + "?force_sandbox_reset=" + Date.now();
@@ -73,31 +90,39 @@ async function forceResetSandboxCache() {
 
 document.getElementById('btnLogin').onclick = async () => {
   try {
+    await hardResetPiSandboxSession();
     addLog("🔄 Đang xin cấp Token Sandbox mới từ Pi Server...");
     let auth = await Pi.authenticate(['username', 'payments'], (p) => { addLog("Incomplete: " + p.identifier); });
     addLog("----------------------------------------");
     addLog("✅ TẠO SESSION SANDBOX MỚI THÀNH CÔNG!");
-    addLog("👉 UID CỦA BẠN: " + "17bd5195-d292-453f-9257-e3c9d812a7a0");
-    addLog("👉 USERNAME: @" + "thuongsheva");
+    addLog("👉 UID CỦA BẠN: " + auth.user.uid);
+    addLog("👉 USERNAME: @" + auth.user.username);
     addLog("----------------------------------------");
   } catch (e) {
     addLog("❌ LỖI LOGIN: " + e.message);
   }
 };
 
+// Nút bắn dồn 5 UID tự động kèm hàm reset ngầm bên trong
 document.getElementById('btnPay').onclick = async () => {
-  addLog("🚀 BẮT ĐẦU TIẾN TRÌNH TỰ ĐỘNG REFRESH & BẮN 5 UID...");
+  addLog("🚀 BẮT ĐẦU TIẾN TRÌNH HARD RESET & BẮN DỒN 5 UID A2U...");
   
+  // Tự động quét sạch cache trước khi lấy session mới
+  await hardResetPiSandboxSession();
+
   try {
-    let auth = await Pi.authenticate(['username', 'payments'], () => {});
+    let auth = await Pi.authenticate(['username', 'payments'], (incomplete) => {
+      addLog("⚠ Phát hiện giao dịch treo: " + incomplete.identifier);
+    });
     addLog("🔄 Auto-Refresh Session thành công cho: @" + auth.user.username);
   } catch (e) {
     addLog("⚠ Cảnh báo Refresh Session: " + e.message);
   }
 
+  // Vòng lặp bắn lần lượt cả 5 UID thật
   for (let i = 0; i < TARGET_UIDS.length; i++) {
     let u = TARGET_UIDS[i];
-    addLog(`⏳ [${i + 1}/5] Bắn tới UID: (${u.uid.substring(0, 8)}...)`);
+    addLog(`⏳ [${i + 1}/5] Đang bắn A2U tới UID: ${u.username} (${u.uid.substring(0, 8)}...)`);
     try {
       let r = await fetch('/api/a2u', {
         method: 'POST',
@@ -118,9 +143,10 @@ document.getElementById('btnPay').onclick = async () => {
     } catch (err) {
       addLog(`❌ Lỗi kết nối: ${err.message}`);
     }
-    await new Promise(r => setTimeout(r, 1200));
+    // Chờ 1.5 giây giữa các request để server Pi kịp xử lý
+    await new Promise(r => setTimeout(r, 1500));
   }
-  addLog("🎉 HOÀN THÀNH TIẾN TRÌNH TEST!");
+  addLog("🎉 HOÀN THÀNH TIẾN TRÌNH BẮN 5 UID A2U!");
 };
 </script>
 </body>
