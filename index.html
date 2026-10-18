@@ -1,4 +1,4 @@
-<!-- LUMIA 909 - TESTNET BUILD + HARD RESET & BATCH PAY A2U -->
+<!-- LUMIA 909 - TESTNET BUILD + SINGLE UID TEST -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,7 +19,7 @@ button{padding:12px 18px;margin:8px 5px;font-size:15px;cursor:pointer;font-weigh
 </head>
 <body>
 <h2>🚀 <span class="main">TESTNET</span> Lumia 909 <span class="test">SANDBOX ENABLED</span></h2>
-<p style="color:#aaa;font-size:12px;margin:5px 0">App TESTNET - Hard Reset & Batch 5 UIDs A2U</p>
+<p style="color:#aaa;font-size:12px;margin:5px 0">App TESTNET - Hard Reset & Single UID A2U Test</p>
 <div id="verify">
 <b>🔍 XÁC MINH DỰ ÁN:</b><br>
 ✅ App ID: <b>lumia909</b> (TESTNET)<br>
@@ -28,8 +28,8 @@ button{padding:12px 18px;margin:8px 5px;font-size:15px;cursor:pointer;font-weigh
 </div>
 <button onclick="forceResetSandboxCache()" style="background:#ffeb3b;color:#000;margin-bottom:10px">0. 🧹 XOÁ SẠCH CACHE & RESET SANDBOX</button>
 <button id="btnLogin" style="background:#0f0;color:#000;margin-bottom:10px">1. ĐĂNG NHẬP LẠI ĐỂ TẠO SESSION MỚI</button>
-<button id="btnPay" style="background:#ff00ff;color:#fff">2. BẮN DỒN 5 UID TESTNET (BATCH PAY)</button>
-<div id="log">Sẵn sàng! Hãy bấm nút '2' để chạy tiến trình dọn dẹp và bắn 5 UID...</div>
+<button id="btnPay" style="background:#ff00ff;color:#fff">2. BẮN TEST 1 UID THẬT (thuongsheva)</button>
+<div id="log">Sẵn sàng! Hãy bấm nút '2' để chạy tiến trình test...</div>
 
 <script>
 const Pi = window.Pi;
@@ -38,13 +38,9 @@ Pi.init({version: "2.0", sandbox: true});
 document.getElementById('curUrl').textContent = window.location.href;
 document.getElementById('curHost').textContent = window.location.hostname;
 
-// 5 UID chính xác từ 5 thiết bị khác nhau
+// Chỉ giữ lại đúng 1 UID của tài khoản thuongsheva lấy trực tiếp từ Pi.authenticate()
 const TARGET_UIDS = [
-  {username: "user_1", uid: "17bd5195-d292-453f-9257-e3c9d812a7a0"},
-  {username: "user_2", uid: "4a0e132a-2689-484b-8d4b-04e6391a89d9"},
-  {username: "user_3", uid: "7dc50a3e-e66d-4e06-8077-d2b5306889b1"},
-  {username: "user_4", uid: "0c5bbb4d-5306-48b4-b227-383d95399a53"},
-  {username: "user_5", uid: "f963dc03-f6f5-41ba-a3f4-54f5a8569b5c"}
+  {username: "thuongsheva", uid: "17bd5195-d292-453f-9257-e3c9d812a7a0"}
 ];
 
 function addLog(m) {
@@ -53,7 +49,7 @@ function addLog(m) {
   el.scrollTop = el.scrollHeight;
 }
 
-// Hàm Hard Reset Sandbox cực mạnh bằng code để trị tận gốc việc ngậm phiên của Pi Browser
+// Hàm Hard Reset Sandbox cực mạnh bằng code
 async function hardResetPiSandboxSession() {
   addLog("🧹 Đang thực hiện Hard Reset toàn bộ Cache và Session ngầm...");
   try {
@@ -103,11 +99,9 @@ document.getElementById('btnLogin').onclick = async () => {
   }
 };
 
-// Nút bắn dồn 5 UID tự động kèm hàm reset ngầm bên trong
 document.getElementById('btnPay').onclick = async () => {
-  addLog("🚀 BẮT ĐẦU TIẾN TRÌNH HARD RESET & BẮN DỒN 5 UID A2U...");
+  addLog("🚀 BẮT ĐẦU TIẾN TRÌNH TEST 1 UID THẬT...");
   
-  // Tự động quét sạch cache trước khi lấy session mới
   await hardResetPiSandboxSession();
 
   try {
@@ -119,34 +113,31 @@ document.getElementById('btnPay').onclick = async () => {
     addLog("⚠ Cảnh báo Refresh Session: " + e.message);
   }
 
-  // Vòng lặp bắn lần lượt cả 5 UID thật
-  for (let i = 0; i < TARGET_UIDS.length; i++) {
-    let u = TARGET_UIDS[i];
-    addLog(`⏳ [${i + 1}/5] Đang bắn A2U tới UID: ${u.username} (${u.uid.substring(0, 8)}...)`);
-    try {
-      let r = await fetch('/api/a2u', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({uid: u.uid, username: u.username, amount: 1})
-      });
+  let u = TARGET_UIDS[0];
+  addLog(`⏳ Đang bắn A2U tới UID: ${u.username} (${u.uid})`);
+  
+  try {
+    let r = await fetch('/api/a2u', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({uid: u.uid, username: u.username, amount: 1})
+    });
 
-      let res = await r.json();
-      
-      if (r.ok) {
-        addLog(`✅ [${i + 1}/5] THÀNH CÔNG! PaymentID: ${res.paymentId || JSON.stringify(res)}`);
-      } else {
-        addLog(`❌ [${i + 1}/5] THẤT BẠI (HTTP ${r.status}): ${JSON.stringify(res)}`);
-      }
-    } catch (err) {
-      addLog(`❌ Lỗi kết nối: ${err.message}`);
+    let res = await r.json();
+    
+    if (r.ok) {
+      addLog(`✅ THÀNH CÔNG! PaymentID: ${res.paymentId || JSON.stringify(res)}`);
+    } else {
+      addLog(`❌ THẤT BẠI (HTTP ${r.status}): ${JSON.stringify(res)}`);
     }
-    // Chờ 1.5 giây giữa các request để server Pi kịp xử lý
-    await new Promise(r => setTimeout(r, 1500));
+  } catch (err) {
+    addLog(`❌ Lỗi kết nối: ${err.message}`);
   }
-  addLog("🎉 HOÀN THÀNH TIẾN TRÌNH BẮN 5 UID A2U!");
+  
+  addLog("🎉 HOÀN THÀNH TIẾN TRÌNH TEST!");
 };
 </script>
 </body>
