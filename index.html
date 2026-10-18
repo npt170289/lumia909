@@ -1,4 +1,4 @@
-<!-- LUMIA 909 - MAINNET BUILD + AUTO REFRESH SANDBOX v11 -->
+<!-- LUMIA 909 - MAINNET BUILD + AUTO REFRESH SANDBOX v12 -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,11 +30,14 @@ button{padding:12px 18px;margin:8px 5px;font-size:15px;cursor:pointer;font-weigh
 <button id="btnLogin" style="background:#0f0;color:#000;margin-bottom:10px">1. ĐĂNG NHẬP LẠI ĐỂ TẠO SESSION MỚI</button>
 <button id="btnPay" style="background:#ff00ff;color:#fff">2. BẮN 5 UID MAINNET (TEST PAY + AUTO REFRESH)</button>
 <div id="log">Sẵn sàng! Hãy bấm nút '0. XOÁ SẠCH CACHE' trước khi test...</div>
+
 <script>
 const Pi = window.Pi;
 Pi.init({version: "2.0", sandbox: true});
+
 document.getElementById('curUrl').textContent = window.location.href;
 document.getElementById('curHost').textContent = window.location.hostname;
+
 const TARGET_UIDS = [
   {username: "user_1", uid: "17bd5195-d292-453f-9257-e3c9d812a7a0"},
   {username: "user_2", uid: "4a0e132a-2689-484b-8d4b-04e6391a89d9"},
@@ -42,11 +45,13 @@ const TARGET_UIDS = [
   {username: "user_4", uid: "0c5bbb4d-5306-48b4-b227-383d95399a53"},
   {username: "user_5", uid: "f963dc03-f6f5-41ba-a3f4-54f5a8569b5c"}
 ];
+
 function addLog(m) {
   let el = document.getElementById('log');
   el.textContent += "\n[" + new Date().toLocaleTimeString() + "] " + m;
   el.scrollTop = el.scrollHeight;
 }
+
 async function forceResetSandboxCache() {
   addLog("🧹 Đang kích hoạt tiến trình làm sạch triệt để...");
   try {
@@ -70,6 +75,7 @@ async function forceResetSandboxCache() {
     window.location.href = baseUrl + "?force_sandbox_reset=" + Date.now();
   }, 1000);
 }
+
 document.getElementById('btnLogin').onclick = async () => {
   try {
     addLog("🔄 Đang xin cấp Token Sandbox mới từ Pi Server...");
@@ -83,10 +89,10 @@ document.getElementById('btnLogin').onclick = async () => {
     addLog("❌ LỖI LOGIN: " + e.message);
   }
 };
+
 document.getElementById('btnPay').onclick = async () => {
   addLog("🚀 BẮT ĐẦU TIẾN TRÌNH TỰ ĐỘNG REFRESH & BẮN 5 UID...");
   
-  // Tự động refresh/xác thực lại session ngầm trước khi bắn lệnh thanh toán
   try {
     let auth = await Pi.authenticate(['username', 'payments'], () => {});
     addLog("🔄 Auto-Refresh Session thành công cho: @" + auth.user.username);
@@ -98,20 +104,22 @@ document.getElementById('btnPay').onclick = async () => {
     let u = TARGET_UIDS[i];
     addLog(`⏳ [${i + 1}/5] Bắn tới UID: (${u.uid.substring(0, 8)}...)`);
     try {
-      let r = await fetch('/api/a2u?auto_refresh=' + Date.now(), {
+      let r = await fetch('/api/a2u', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json', 'Cache-Control': 'no-cache'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({uid: u.uid, username: u.username, amount: 1})
       });
-      
-      if (r.status === 404) {
-        addLog(`❌ [${i + 1}/5] LỖI 404: Vercel chưa nhận diện được route /api/a2u.`);
-        break;
-      }
 
       let res = await r.json();
-      if (r.ok) addLog(`✅ [${i + 1}/5] THÀNH CÔNG! PaymentID: ${res.paymentId || JSON.stringify(res)}`);
-      else addLog(`❌ [${i + 1}/5] THẤT BẠI: ${JSON.stringify(res)}`);
+      
+      if (r.ok) {
+        addLog(`✅ [${i + 1}/5] THÀNH CÔNG! PaymentID: ${res.paymentId || JSON.stringify(res)}`);
+      } else {
+        addLog(`❌ [${i + 1}/5] THẤT BẠI (HTTP ${r.status}): ${JSON.stringify(res)}`);
+      }
     } catch (err) {
       addLog(`❌ Lỗi kết nối: ${err.message}`);
     }
