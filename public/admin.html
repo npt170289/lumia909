@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumia 909 — Admin (nội bộ)</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #05080f; color: #fff; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; }
+  h1 { font-size: 1.2rem; margin: 0 0 4px; }
+  h1 span { background: linear-gradient(90deg, #f472b6, #22c55e); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .sub { color: #9ca3af; font-size: 0.85rem; margin: 0 0 16px; }
+  .gate { background: #111827; border: 1px solid rgba(244,114,182,0.4); border-radius: 12px; padding: 16px; margin-bottom: 16px; max-width: 420px; }
+  .gate p { margin: 0 0 10px; color: #9ca3af; font-size: 0.85rem; }
+  .gate input { width: 100%; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 12px; color: #fff; font-size: 0.9rem; outline: none; margin-bottom: 10px; }
+  .gate input:focus { border-color: rgba(244,114,182,0.5); }
+  .gate button { background: linear-gradient(90deg, #ec4899, #22c55e); color: #fff; font-weight: 700; border: none; border-radius: 999px; padding: 10px 20px; font-size: 0.85rem; cursor: pointer; }
+  .gate .err { color: #fca5a5; font-size: 0.85rem; margin: 8px 0 0; display: none; }
+  .bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .bar input { flex: 1; min-width: 200px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 12px; color: #fff; font-size: 0.9rem; outline: none; }
+  .bar input:focus { border-color: rgba(244,114,182,0.5); }
+  .bar button { background: linear-gradient(90deg, #ec4899, #22c55e); color: #fff; font-weight: 700; border: none; border-radius: 999px; padding: 10px 20px; font-size: 0.85rem; cursor: pointer; }
+  .status { color: #9ca3af; font-size: 0.85rem; margin: 8px 0; }
+  .status.err { color: #fca5a5; }
+  table { width: 100%; border-collapse: collapse; background: #0f172a; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top; }
+  th { color: #f472b6; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  tr:last-child td { border-bottom: none; }
+  td.num { text-align: center; }
+  .empty { text-align: center; color: #9ca3af; padding: 24px; }
+  @media (max-width: 720px) {
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+    tr { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0; }
+    td { border-bottom: none; padding: 4px 12px; }
+    td::before { content: attr(data-label) ": "; color: #f472b6; font-weight: 700; font-size: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Dashboard đặt bàn — <span>LUMIA 909</span></h1>
+  <p class="sub">Mới nhất lên đầu • Hotline: Mr Thương 0399 035 303</p>
+  <div id="gate" class="gate">
+    <p>Trang nội bộ. Nhập mật khẩu quản trị để xem đặt bàn.</p>
+    <input id="adminKey" type="password" placeholder="Mật khẩu quản trị" autocomplete="off">
+    <button id="gateBtn" type="button">Vào dashboard</button>
+    <p id="gateErr" class="err">Sai mật khẩu, nhập lại.</p>
+  </div>
+  <div id="app" style="display:none">
+  <div class="bar">
+    <input id="phone" type="tel" placeholder="Tìm theo SĐT (vd 0399...)" autocomplete="off">
+    <button id="searchBtn" type="button">Tìm</button>
+    <button id="reloadBtn" type="button">Tải lại</button>
+  </div>
+  <div id="status" class="status">Đang tải đặt bàn...</div>
+  <table id="tbl" style="display:none">
+    <thead>
+      <tr>
+        <th>Thời gian tạo</th>
+        <th>Tên</th>
+        <th>SĐT</th>
+        <th>Giờ đến</th>
+        <th>Số người</th>
+        <th>Ghi chú</th>
+        <th>Điểm đã dùng</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  </div>
+</div>
+<script>
+(function () {
+  // Mật khẩu quản trị chỉ giữ trong sessionStorage (đóng tab là mất),
+  // KHÔNG dùng localStorage — đúng quy tắc Phase 1 (database là xương sống,
+  // không lưu gì lâu dài ở trình duyệt).
+  var KEY = 'lumia909-admin-key';
+  var gateEl = document.getElementById('gate');
+  var appEl = document.getElementById('app');
+  var keyEl = document.getElementById('adminKey');
+  var gateErrEl = document.getElementById('gateErr');
+  var statusEl = document.getElementById('status');
+  var tbl = document.getElementById('tbl');
+  var tbody = document.getElementById('tbody');
+  var phoneEl = document.getElementById('phone');
+  var timer = null;
+
+  function getKey() {
+    try { return sessionStorage.getItem(KEY) || ''; } catch (e) { return ''; }
+  }
+  function setKey(k) {
+    try { sessionStorage.setItem(KEY, k); } catch (e) {}
+  }
+  function clearKey() {
+    try { sessionStorage.removeItem(KEY); } catch (e) {}
+  }
+  function showGate(msg) {
+    appEl.style.display = 'none';
+    gateEl.style.display = '';
+    if (msg) {
+      gateErrEl.textContent = msg;
+      gateErrEl.style.display = '';
+    } else {
+      gateErrEl.style.display = 'none';
+    }
+    keyEl.focus();
+  }
+  function showApp() {
+    gateEl.style.display = 'none';
+    gateErrEl.style.display = 'none';
+    appEl.style.display = '';
+  }
+
+  function fmt(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function load() {
+    var key = getKey();
+    if (!key) { showGate(); return; }
+    var phone = phoneEl.value.trim();
+    var url = '/api/admin/bookings?limit=100' + (phone ? '&phone=' + encodeURIComponent(phone) : '');
+    statusEl.textContent = 'Đang tải đặt bàn...';
+    statusEl.className = 'status';
+    tbl.style.display = 'none';
+    fetch(url, { headers: { 'x-admin-key': key } })
+      .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, status: res.status, d: d }; }); })
+      .then(function (r) {
+        if (r.status === 401) {
+          clearKey();
+          showGate('Sai mật khẩu, nhập lại.');
+          return;
+        }
+        if (!r.ok || !r.d.success) throw new Error((r.d && r.d.error) || 'Lỗi máy chủ');
+        showApp();
+        var rows = r.d.bookings || [];
+        if (rows.length === 0) {
+          statusEl.textContent = 'Chưa có đặt bàn nào' + (phone ? ' cho SĐT "' + phone + '"' : '') + '.';
+          return;
+        }
+        statusEl.textContent = 'Có ' + rows.length + ' đặt bàn' + (phone ? ' cho SĐT "' + phone + '"' : '') + '.';
+        tbody.innerHTML = rows.map(function (b) {
+          return '<tr>' +
+            '<td data-label="Thời gian tạo">' + esc(fmt(b.created_at)) + '</td>' +
+            '<td data-label="Tên">' + esc(b.name) + '</td>' +
+            '<td data-label="SĐT">' + esc(b.phone) + '</td>' +
+            '<td data-label="Giờ đến">' + esc(fmt(b.time)) + '</td>' +
+            '<td data-label="Số người" class="num">' + esc(b.party_size) + '</td>' +
+            '<td data-label="Ghi chú">' + esc(b.note) + '</td>' +
+            '<td data-label="Điểm đã dùng" class="num">' + esc(b.pi_points_used) + '</td>' +
+            '</tr>';
+        }).join('');
+        tbl.style.display = '';
+      })
+      .catch(function (e) {
+        statusEl.textContent = 'Không tải được đặt bàn (' + e.message + '). Kiểm tra lại API / Supabase rồi thử lại.';
+        statusEl.className = 'status err';
+      });
+  }
+  document.getElementById('gateBtn').addEventListener('click', function () {
+    var k = keyEl.value.trim();
+    if (!k) { showGate('Nhập mật khẩu quản trị.'); return; }
+    setKey(k);
+    keyEl.value = '';
+    load();
+  });
+  keyEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('gateBtn').click(); });
+  document.getElementById('searchBtn').addEventListener('click', load);
+  document.getElementById('reloadBtn').addEventListener('click', function () { phoneEl.value = ''; load(); });
+  phoneEl.addEventListener('input', function () {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(load, 500);
+  });
+  phoneEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  load();
+})();
+</script>
+</body>
+</html>
