@@ -104,7 +104,6 @@
     var cards = [1, 2, 3].map(function (n, i) {
       return '<div class="clip-card" style="border-color:' + colors[i] + '55">' +
         '<video src="public/videos/notte-' + n + '.mp4" muted loop autoplay playsinline preload="metadata"></video>' +
-        '<span class="clip-play"></span>' +
       '</div>';
     }).join("");
     return el(
@@ -113,14 +112,14 @@
   }
 
   /* ---------------- CLIP FULL ----------------
-   * Full clips (clipfulllumia01-05) — landscape 16/9 cards so they display
-   * fully. Placed right after NOTTE so all videos sit together. */
+   * Full clips (clipfulllumia01-05) are VERTICAL like NOTTE — portrait 9/16
+   * cards so they fill the card instead of pillarboxing in a 16/9 card.
+   * Placed right after NOTTE so all videos sit together. */
   function renderFullClips() {
     var colors = ["#a855f7", "#ef4444", "#d4af37", "#22c55e", "#38bdf8"];
     var cards = [1, 2, 3, 4, 5].map(function (n, i) {
       return '<div class="fullclip-card" style="border-color:' + colors[i] + '55">' +
         '<video src="public/videos/clipfulllumia0' + n + '.mp4" muted loop autoplay playsinline preload="metadata"></video>' +
-        '<span class="clip-play"></span>' +
       '</div>';
     }).join("");
     return el(
@@ -333,7 +332,11 @@
           '<div class="foot-brand"><img class="foot-logo" src="public/images/hero-logo.jpg" alt="logo small">' +
           '<div><div class="brand-name">LUMIA 909 - GARDEN LOUNGE</div>' +
           '<div class="brand-sub">BEER GARDEN - VIP LOUNGE - HOT DJ &amp; DANCER</div></div></div>' +
-          '<p class="foot-desc">Rừng nhiệt đới giữa lòng Q5. Không gian ghế nệm sâu, ánh sáng neon jungle, DJ hot, dancer, PR pro. Phù hợp team, sinh nhật, chill tối.</p>' +
+          '<div class="foot-welcome">' +
+            '<p class="welcome-vn">Chào mừng Quý Công ty, Đơn vị, Cá nhân đến với 909 Lumina Garden Lounge! 🌿✨<br>Bar - Lounge - VIP giữa rừng nhiệt đới, DJ - Dancer cực cháy tại 909 Trần Hưng Đạo, P. Chợ Quán.<br>Đặt bàn đêm nay: Mr Thương - 0399 035 303 (17:00 - 03:00) 🔥</p>' +
+            '<p class="welcome-en">Welcome Companies, Organizations &amp; Individuals to 909 Lumina Garden Lounge! 🌿✨<br>VIP Bar - Lounge in tropical garden vibe, DJ - Dancer on fire at 909 Tran Hung Dao, Cho Quan Ward.<br>Book tonight: Mr Thuong - 0399 035 303 (17:00 - 03:00) 🔥</p>' +
+            '<p class="welcome-cn">欢迎各公司、单位及个人光临 909 Lumina Garden Lounge! 🌿✨<br>热带雨林风情的 VIP 酒吧 Lounge，DJ - Dancer 热辣全场，地址：陈兴道909号。<br>今晚订位：Mr Thuong - 0399 035 303 (17:00 - 03:00) 🔥</p>' +
+          '</div>' +
           '<div class="foot-chips"><span class="pill">909 Trần Hưng Đạo, P. Chợ Quán</span><span class="pill">17:00 - 03:00</span></div>' +
         '</div>' +
         '<div><div class="foot-h">HOTLINE</div>' +
