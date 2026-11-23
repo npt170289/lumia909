@@ -20,6 +20,23 @@
   var piStatus = "checking";
   var sessionId = "web-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
 
+// Mã trình duyệt riêng cho giới hạn chat (20 câu/ngày). Lưu ở sessionStorage để mỗi
+// trình duyệt/tab có quota riêng — tránh chặn nhầm khi nhiều khách dùng chung WiFi quán.
+// Không dùng localStorage (theo quy tắc Phase 1: dữ liệu ở Supabase, không ở trình duyệt).
+function getChatCid() {
+  try {
+    var k = "chat_cid";
+    var cid = sessionStorage.getItem(k);
+    if (!cid) {
+      cid = "cid-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+      sessionStorage.setItem(k, cid);
+    }
+    return cid;
+  } catch (e) {
+    return "cid-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+  }
+}
+
   function el(html) {
     var t = document.createElement("template");
     t.innerHTML = html.trim();
@@ -442,11 +459,11 @@
       addMsg(userQ, "user");
       var reply = T(userQ);
       setTimeout(function () {
-        // Giới hạn 20 câu/ngày/người (theo IP, qua /api/chat-limit). Lỗi -> cho qua (fail open).
+        // Giới hạn 20 câu/ngày/người (theo trình duyệt, qua /api/chat-limit). Lỗi -> cho qua (fail open).
         fetch("/api/chat-limit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ venue: "lumia909" })
+          body: JSON.stringify({ venue: "lumia909", cid: getChatCid() })
         }).then(function (r) { return r.ok ? r.json() : { allowed: true }; })
           .catch(function () { return { allowed: true }; })
           .then(function (d) {
