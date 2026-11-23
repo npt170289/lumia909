@@ -366,43 +366,36 @@
   }
 
   function T(q) {
+    // Chatbot thông minh (intent + tra menu thật). Build 1 lần từ menuData (242 món).
+    if (!window.__LumiaSmartBot && window.ChatbotIntent && menuData) {
+      var __menu = [];
+      var __cats = [];
+      menuData.categories.forEach(function (c) {
+        __cats.push({ name: c.name, count: c.items.length });
+        c.items.forEach(function (it) {
+          __menu.push({ name: it.name, price: it.price == null ? "" : String(it.price), category: c.name });
+        });
+      });
+      window.__LumiaSmartBot = window.ChatbotIntent.create({
+        venueName: "Lumia 909",
+        contactName: "Mr Thương",
+        hotline: HOTLINE,
+        address: ADDRESS_FULL,
+        hours: HOURS,
+        totalDishes: TOTAL_DISHES,
+        categories: __cats,
+        menu: __menu,
+        piReply: "Dạ Pi Network: đặt bàn VIP được Tặng 200 Pi ạ. Thanh toán tại quán chỉ dùng VND. Pi chỉ là ưu đãi, không phải thanh toán ạ.",
+        parkingReply: "Dạ có chỗ gửi xe rộng ạ, gần cầu Nguyễn Văn Cừ. Quý khách cứ tới, nhân viên sẽ hướng dẫn ạ.",
+        giftText: "tặng 200 Pi",
+      });
+    }
+    if (window.__LumiaSmartBot) return window.__LumiaSmartBot.reply(q);
+    // Fallback nếu menu chưa load kịp: câu trả lời chung (không bịa).
     var lang = detectLang(q);
-    var s = (q || "").toLowerCase();
-    var has = function () {
-      for (var i = 0; i < arguments.length; i++) {
-        if (s.indexOf(arguments[i]) !== -1) return true;
-      }
-      return false;
-    };
-    if (has("menu", "món", "mon", "ăn", "an", "uống", "uong", "thực đơn", "thuc don", "菜单", "菜", "点菜")) {
-      var unit = lang === "cn" ? "道" : (lang === "en" ? " dishes" : " món");
-      var lines = lang === "cn"
-        ? "Lumia 909 菜单有" + TOTAL_DISHES + "道菜，19个类别："
-        : (lang === "en"
-          ? "Lumia 909 menu has " + TOTAL_DISHES + " dishes in 19 groups:"
-          : "Dạ menu Lumia 909 có " + TOTAL_DISHES + " món, 19 nhóm ạ:");
-      menuData.categories.forEach(function (c) { lines += "\n• " + c.name + " (" + c.items.length + unit + ")"; });
-      lines += lang === "cn" ? "\n您想看哪个类别？" : (lang === "en" ? "\nWhich group would you like to see?" : "\nQuý khách muốn xem nhóm nào ạ?");
-      return lines;
-    }
-    if (has("đặt bàn", "dat ban", "đặt", "dat", "booking", "vip", "book", "reservation", "table", "预订", "预定", "订桌", "订位")) {
-      if (lang === "cn") return "预订贵宾桌请联系 Mr Thương " + HOTLINE + "。热辣DJ、舞者、专业公关。户外啤酒花园。预订贵宾桌赠送200 Pi。请问几位、几点到？";
-      if (lang === "en") return "For VIP booking, please contact Mr Thương " + HOTLINE + ". Hot DJ, dancer, pro PR. Outdoor Beer Garden. Get 200 Pi free when booking VIP. How many people and what time?";
-      return "Dạ đặt bàn VIP quý khách vui lòng liên hệ Mr Thương " + HOTLINE + " ạ. DJ hot, dancer, PR pro. Beer Garden ngoài trời thoáng mát. Tặng 200 Pi khi đặt bàn VIP. Quý khách đi mấy người và mấy giờ ạ?";
-    }
-    if (has("địa chỉ", "dia chi", "ở đâu", "o dau", "đâu", "dau", "giờ", "gio", "open", "mở cửa", "mo cua", "faq", "đường", "duong", "address", "hours", "地址", "在哪", "营业", "时间")) {
-      if (lang === "cn") return "地址：" + ADDRESS_FULL + "。营业时间每天" + HOURS + "。订桌热线：Mr Thương " + HOTLINE + "。第五郡市中心的热带雨林，冰啤酒、深座椅。";
-      if (lang === "en") return "Address: " + ADDRESS_FULL + ". Open " + HOURS + " daily. Booking hotline: Mr Thương " + HOTLINE + ". Tropical jungle in the heart of District 5, cold beer, deep lounge seats.";
-      return "Dạ: Địa chỉ " + ADDRESS_FULL + ". Mở cửa " + HOURS + " hàng ngày. Hotline đặt bàn: Mr Thương " + HOTLINE + ". Không gian rừng nhiệt đới giữa lòng Quận 5, bia lạnh, ghế nệm sâu ạ.";
-    }
-    if (has("pi", "thanh toán", "thanh toan", "pay", "tiền", "tien", "giá", "gia", "支付", "付款", "派")) {
-      if (lang === "cn") return "Pi Network：预订贵宾桌赠送200 Pi。店内仅接受越南盾付款。Pi是赠品，不是付款方式。";
-      if (lang === "en") return "Pi Network: VIP booking gets 200 Pi free. Payment at the venue is VND only. Pi is a gift, not a payment method.";
-      return "Dạ Pi Network: đặt bàn VIP được Tặng 200 Pi ạ. Thanh toán tại quán chỉ dùng VND. Pi chỉ là ưu đãi, không phải thanh toán ạ.";
-    }
-    if (lang === "cn") return "需要什么帮助？需要菜单、预订贵宾桌还是地址和营业时间？输入\"menu\"查看" + TOTAL_DISHES + "道菜，\"booking\"预订贵宾桌，\"address\"查看信息。";
-    if (lang === "en") return "How can I help? Do you need the menu, VIP booking, or address & hours? Type \"menu\" for " + TOTAL_DISHES + " dishes, \"booking\" for VIP booking, \"address\" for info.";
-    return "Dạ em hiểu rồi ạ. Các bạn cần hỗ trợ thêm về menu, đặt bàn VIP hay địa chỉ giờ mở cửa ạ? Gõ \"menu\" để xem " + TOTAL_DISHES + " món, \"đặt bàn\" để đặt VIP, \"địa chỉ\" để xem thông tin ạ.";
+    if (lang === "cn") return "需要什么帮助？需要菜单、预订贵宾桌还是地址和营业时间？";
+    if (lang === "en") return "How can I help? Do you need the menu, VIP booking, or address & hours?";
+    return "Dạ em hiểu rồi ạ. Các bạn cần hỗ trợ thêm về menu, đặt bàn VIP hay địa chỉ giờ mở cửa ạ?";
   }
 
   function openChat() {
@@ -449,8 +442,24 @@
       addMsg(userQ, "user");
       var reply = T(userQ);
       setTimeout(function () {
-        addMsg(reply, "bot");
-        if (window.LumiaChatLog) window.LumiaChatLog(sessionId, userQ, reply);
+        // Giới hạn 20 câu/ngày/người (theo IP, qua /api/chat-limit). Lỗi -> cho qua (fail open).
+        fetch("/api/chat-limit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ venue: "lumia909" })
+        }).then(function (r) { return r.ok ? r.json() : { allowed: true }; })
+          .catch(function () { return { allowed: true }; })
+          .then(function (d) {
+            var allowed = d.allowed !== false;
+            if (!allowed) {
+              var lang = detectLang(userQ);
+              reply = lang === "cn" ? "您今天已经问了20个问题，请致电 Mr Thương 0399 035 303，工作人员会继续帮您。"
+                : lang === "en" ? "You've asked 20 questions today. Please call Mr Thương 0399 035 303 and our staff will help you further."
+                : "Dạ quý khách đã hỏi đủ 20 câu hôm nay rồi ạ. Quý khách gọi Mr Thương 0399 035 303 để nhân viên hỗ trợ tiếp nhé.";
+            }
+            addMsg(reply, "bot");
+            if (allowed && window.LumiaChatLog) window.LumiaChatLog(sessionId, userQ, reply);
+          });
       }, 400);
     }
     addMsg(greeting, "bot");
