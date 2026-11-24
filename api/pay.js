@@ -4,6 +4,28 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, error: "Method Not Allowed" });
   }
 
+  // --- KHOA ADMIN (2026-11-24) ---
+  // Chi admin moi duoc pay A2U. Verify accessToken qua Pi /v2/me, UID phai == ADMIN_UID.
+  // Khong co token -> 401; token khong hop le -> 401; UID khong phai admin -> 403.
+  // Admin UID: thuongsheva trong app Lumia (lay qua uid.html 2026-11-25; trung UID dau tien trong DEFAULT_5UIDS).
+  const ADMIN_UID = process.env.ADMIN_UID || '17bd5195-d292-453f-9257-e3c9d812a7a0';
+  const _accessToken = (req.body || {}).accessToken;
+  if (!_accessToken) {
+    return res.status(401).json({ success: false, error: 'Thieu accessToken — dang nhap Pi truoc khi pay.' });
+  }
+  try {
+    const _meRes = await fetch('https://api.minepi.com/v2/me', { headers: { Authorization: `Bearer ${_accessToken}` } });
+    const _meData = await _meRes.json().catch(() => ({}));
+    if (!_meRes.ok || !_meData.uid) {
+      return res.status(401).json({ success: false, error: 'accessToken khong hop le.' });
+    }
+    if (_meData.uid !== ADMIN_UID) {
+      return res.status(403).json({ success: false, error: '403 Forbidden — Chi chinh chu (admin) moi duoc pay A2U.' });
+    }
+  } catch (e) {
+    return res.status(401).json({ success: false, error: 'accessToken khong hop le.' });
+  }
+
   const PI_API_KEY = process.env.PI_API_KEY;
   if (!PI_API_KEY) {
     return res.status(500).json({ success: false, error: "Missing PI_API_KEY" });
