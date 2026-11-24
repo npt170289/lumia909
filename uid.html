@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lấy UID — Lumia 909</title>
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <style>
+    body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
+    button { padding: 12px 20px; margin: 10px; font-size: 16px; cursor: pointer; }
+    #log { white-space: pre-wrap; background: #000; padding: 15px; border: 1px solid #0f0; min-height: 200px; overflow: auto; }
+    .uid { color: #ff0; font-size: 18px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>Lấy UID — Lumia 909</h2>
+  <button id="btnLogin">ĐĂNG NHẬP PI</button>
+  <div id="log">Bấm nút đăng nhập để lấy UID admin cho app Lumia 909...</div>
+
+<script>
+  const Pi = window.Pi;
+  // Lumia: sandbox: false (khop js/pi-sdk.js cua app)
+  Pi.init({ version: "2.0", sandbox: false });
+
+  function addLog(m) {
+    const el = document.getElementById('log');
+    el.textContent += "\n[" + new Date().toLocaleTimeString() + "] " + m;
+    el.scrollTop = el.scrollHeight;
+    console.log(m);
+  }
+
+  document.getElementById('btnLogin').onclick = async () => {
+    try {
+      addLog("Đang yêu cầu xác thực Pi Network...");
+      const auth = await Pi.authenticate(['username'], (incompletePayment) => {
+        addLog("Phát hiện giao dịch chưa hoàn thành: " + incompletePayment.identifier);
+      });
+      addLog("Đăng nhập thành công!");
+      addLog("Username: " + auth.user.username);
+      addLog("UID: " + auth.user.uid);
+      addLog("--- Copy UID ở trên gửi cho Muse ---");
+    } catch (e) {
+      addLog("Lỗi đăng nhập: " + e.message);
+    }
+  };
+</script>
+</body>
+</html>
