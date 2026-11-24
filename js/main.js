@@ -366,7 +366,7 @@ function getChatCid() {
           '<a class="btn map-btn" href="' + MAPS_URL + '" target="_blank" rel="noopener noreferrer">Chỉ đường tới Lumia 909 ↗</a>' +
         '</div>' +
       '</div></div>' +
-      '<div class="bottom-bar">© 2026 LUMIA 909 - GARDEN LOUNGE</div></footer>'
+      '<div class="bottom-bar">© 2026 LUMIA 909 - GARDEN LOUNGE &nbsp;·&nbsp; <a href="privacy.html" style="color:rgba(255,255,255,.65);text-decoration:underline">Privacy Policy</a> &nbsp;·&nbsp; <a href="terms.html" style="color:rgba(255,255,255,.65);text-decoration:underline">Terms of Service</a></div></footer>'
     );
   }
 

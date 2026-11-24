@@ -1,83 +1,64 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Privacy Policy - Lumia 909 | 909 Lumia Garden Lounge</title>
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<title>Privacy Policy — Lumia 909</title>
+<meta name="description" content="Lumia 909 Privacy Policy — how the Lumia 909 application handles information.">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-body{font-family:'Open Sans',sans-serif;line-height:1.75;padding:0;margin:0;background:#05080f;color:#e5e7eb}
+body{font-family:'Open Sans',system-ui,-apple-system,sans-serif;line-height:1.75;padding:0;margin:0;background-color:#05080f;background-image:linear-gradient(rgba(5,8,15,0.80),rgba(5,8,15,0.80)),url("public/images/bg-lumia.jpg");background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat;color:#e5e7eb}
 a{color:#22c55e}
 .container{max-width:900px;margin:0 auto;padding:28px 20px}
 .card{background:#0f172a;border:1px solid rgba(212,175,55,0.25);padding:32px;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,0.6)}
 h1{color:#d4af37;font-size:32px;margin-bottom:6px}
 h2{color:#a855f7;margin-top:28px;font-size:20px;border-left:4px solid #22c55e;padding-left:12px}
-.badge{display:inline-block;background:linear-gradient(90deg,#22c55e,#a855f7);color:#05080f;font-weight:800;padding:4px 12px;border-radius:999px;font-size:12px;margin-bottom:12px}
 .meta{color:#9ca3af;font-size:13px;margin-bottom:18px}
 li{margin-bottom:8px}
-.highlight{background:rgba(34,197,94,0.1);border:1px dashed rgba(34,197,94,0.5);padding:12px 14px;border-radius:12px;margin:14px 0}
 .footer{margin-top:30px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.1);color:#9ca3af;font-size:13px}
+.back{margin-top:24px}
+.back a{color:#22c55e;text-decoration:none;font-weight:700}
+.back a:hover{text-decoration:underline}
+@media(max-width:600px){.card{padding:22px 18px}h1{font-size:24px}}
 </style>
 </head>
 <body>
 <div class="container">
 <div class="card">
-<div class="badge">PCT APPROVAL READY - PI NETWORK COMPLIANT</div>
-<h1>Chính Sách Bảo Mật (Privacy Policy) - Lumia 909</h1>
-<div class="meta">Cập nhật lần cuối: 10/05/2026 | 909 Lumia Garden Lounge - 909 Trần Hưng Đạo, P. Chợ Quán, TP.HCM | Hotline duy nhất: 0399 035 303 (Mr Thương) | Giờ mở cửa: 17:00 - 03:00</div>
-<p>Ứng dụng <strong>Lumia 909 - 909 Lumia Garden Lounge</strong> hoạt động trên hệ sinh thái <strong>Pi Network</strong> và cam kết bảo vệ quyền riêng tư tuyệt đối của Pioneer. Chính sách này giải thích rõ cách chúng tôi thu thập, sử dụng, lưu trữ và bảo vệ dữ liệu khi bạn sử dụng Pi SDK.</p>
-<h2>1. Thông Tin Chúng Tôi Thu Thập Qua Pi SDK</h2>
-<p>Khi bạn đăng nhập bằng Pi Browser, chúng tôi chỉ yêu cầu 3 quyền (scopes) tối thiểu để đủ điều kiện PCT duyệt:</p>
+<h1>Privacy Policy</h1>
+<div class="meta">Last updated: 25 November 2026</div>
+<p>Lumia 909 is a restaurant and venue information application providing menu browsing, automated menu assistance, booking requests, and Pi-related Testnet functionality.</p>
+
+<h2>Information We May Process</h2>
+<p>Depending on your use of the application, we may process:</p>
 <ul>
-<li><strong>username</strong>: Tên hiển thị Pi (ví dụ @thuong909) để chào bạn và giữ bàn VIP.</li>
-<li><strong>payments</strong>: Để tạo và xác minh thanh toán Pi cho ưu đãi Tặng 200 Pi khi đặt bàn VIP, xử lý incomplete payment.</li>
-<li><strong>wallet_address</strong>: Địa chỉ ví Pi công khai (không phải private key) để thực hiện A2U Reward/Testnet khi bạn đồng ý nhận thưởng.</li>
+<li>Pi account information, such as username or UID, when you authenticate through Pi.</li>
+<li>Booking information voluntarily submitted through the booking form, such as name, contact details, requested date and time, party size, and booking notes.</li>
+<li>Questions or messages submitted to the chatbot.</li>
+<li>Technical information needed to operate and secure the application.</li>
 </ul>
-<div class="highlight">Chúng tôi <strong>KHÔNG BAO GIỜ</strong> thu thập private key, passphrase, email, số điện thoại từ Pi SDK ngoài những gì bạn tự nhập vào form đặt bàn. Mọi dữ liệu Pi đều là public info từ Pi Platform API.</div>
-<h2>2. Mục Đích Sử Dụng Dữ Liệu</h2>
-<ul>
-<li><strong>Xác thực & Giữ bàn VIP</strong>: Dùng username để giữ chỗ, tặng 200 Pi cho khách đặt bàn VIP, hiển thị "Xin chào @username".</li>
-<li><strong>Thanh toán Pi</strong>: Dùng payments scope để gọi <code>/v2/payments</code> tạo memo <code>Lumia 909 Sandbox Test to @uid</code>, xử lý <code>ongoing_payment_found</code> bằng <code>/complete</code> hoặc <code>/cancel</code> theo chuẩn Pi.</li>
-<li><strong>A2U Reward / Test</strong>: Backend <code>/api/pay_a2u.js</code> dùng <code>PI_API_KEY</code> (server-side, không lộ client) để gửi A2U tới 5 UIDs test đã được cấp quyền wallet_address. Chỉ áp dụng khi tài khoản đã Allow wallet_address trên trang cấp quyền.</li>
-<li><strong>Chăm sóc khách hàng</strong>: Thông tin đặt bàn (Tên, SĐT, Số khách, Ngày giờ) do bạn tự nhập vào form, chỉ dùng để liên hệ xác nhận qua hotline duy nhất 0399 035 303.</li>
-<li><strong>Cải thiện trải nghiệm</strong>: Phân tích ẩn danh lưu lượng Web2, không bán dữ liệu.</li>
-</ul>
-<h2>3. Lưu Trữ & Bảo Mật</h2>
-<ul>
-<li>Dữ liệu Pi (UID, username) lưu trong localStorage trình duyệt và log server Vercel tối đa 30 ngày, sau đó tự xóa.</li>
-<li><code>PI_API_KEY</code> lưu trong Environment Variable Vercel, không bao giờ lộ ra frontend. Frontend chỉ gọi <code>fetch('/api/pay_a2u')</code> và nhận receipt identifier.</li>
-<li>Chúng tôi dùng HTTPS, không lưu private key, không lưu seed phrase.</li>
-<li>Thanh toán A2U đã được ghi nhận on-chain Pi Testnet/Mainnet, receipt hash hiển thị cho bạn kiểm tra.</li>
-</ul>
-<h2>4. Chia Sẻ Dữ Liệu Với Bên Thứ Ba</h2>
-<p>Chúng tôi <strong>KHÔNG</strong> bán, cho thuê, chia sẻ dữ liệu cá nhân cho bên thứ ba ngoài:</p>
-<ul>
-<li>Pi Platform API (<code>api.minepi.com</code>) để xác thực và hoàn tất thanh toán theo tài liệu Pi.</li>
-<li>Vercel Hosting để host <code>lumia909.vercel.app</code> và <code>lumiarz2822.pinet.com</code>.</li>
-</ul>
-<h2>5. Quyền Của Bạn (Pioneer Rights)</h2>
-<ul>
-<li>Quyền xem, sửa, xóa dữ liệu đặt bàn bằng cách liên hệ hotline 0399 035 303 (Mr Thương).</li>
-<li>Quyền thu hồi quyền wallet_address bằng cách vào Pi Browser > Settings > App Permissions > Revoke.</li>
-<li>Quyền yêu cầu xóa toàn bộ log Pi UID bằng email/điện thoại hỗ trợ.</li>
-<li>Trẻ em dưới 13 tuổi không được sử dụng thanh toán Pi.</li>
-</ul>
-<h2>6. Pi SDK & Lazy-Load - Đủ Điều Kiện PCT</h2>
-<p>Để tối ưu Web2 light &lt;2MB, chúng tôi lazy-load <code>https://sdk.minepi.com/pi-sdk.js</code> chỉ khi detect <code>PiBrowser</code> UA hoặc host <code>pinet.com</code>. Trên Chrome/Safari thông thường không load Pi SDK nên không lỗi <code>Pi is not defined</code>. Khi ở Pi Browser, chúng tôi gọi <code>Pi.init({version:"2.0", sandbox:false})</code> và <code>Pi.authenticate(['username','payments'])</code> kèm <code>onIncompletePaymentFound</code> để xử lý thanh toán dở dang, đủ 4 tiêu chí PCT duyệt.</p>
-<h2>7. Liên Hệ & Khiếu Nại</h2>
-<p>Mọi thắc mắc về Privacy, vui lòng liên hệ:</p>
-<ul>
-<li><strong>Lumia 909 - 909 Lumia Garden Lounge</strong></li>
-<li>Địa chỉ: 909 Trần Hưng Đạo, Phường Chợ Quán, Quận 5 (cũ), TP.HCM</li>
-<li>Hotline duy nhất: 0399 035 303 (Mr Thương) - Mở cửa 17:00 - 03:00</li>
-<li>Website: https://lumia909.vercel.app & https://lumiarz2822.pinet.com</li>
-<li>Email hỗ trợ: support@lumia909.vn (hoặc gọi hotline)</li>
-</ul>
-<h2>8. Thay Đổi Chính Sách</h2>
-<p>Chúng tôi có thể cập nhật chính sách này khi Pi Network thay đổi quy định Mainnet. Phiên bản mới sẽ được đăng tại <code>/privacy.html</code> và <code>/terms.html</code> với ngày cập nhật mới nhất. Tiếp tục sử dụng app sau khi cập nhật nghĩa là bạn đồng ý với chính sách mới.</p>
-<div class="footer">
-© 2026 Lumia 909 - 909 Lumia Garden Lounge. Built for Pi Network Pioneers. Web2+Web3+AI Chatbot. Pi SDK Scopes: username, payments, wallet_address. Backend /api/pay_a2u.js secured with PI_API_KEY. No private key collected.
-</div>
+
+<h2>Purposes</h2>
+<p>Information is used to display menus and venue information, manage booking requests, answer restaurant-related questions, support Pi authentication and testing, maintain security, and respond to inquiries.</p>
+
+<h2>Booking Infrastructure</h2>
+<p>The booking form uses Supabase infrastructure shared with the Garden Station 303 project. Information submitted through Lumia 909 may therefore be processed or stored using that shared infrastructure for booking management.</p>
+
+<h2>Chatbot</h2>
+<p>The chatbot provides automated information about the menu and venue. Responses may be incomplete or inaccurate. Do not submit passwords, wallet private keys, or unnecessary sensitive information.</p>
+
+<h2>Pi Testnet</h2>
+<p>Pi Testnet features are provided for testing. Test-Pi is not represented as real-money payment or legal tender. Testnet transactions may be recorded on a public blockchain.</p>
+
+<h2>Sharing, Retention, and Rights</h2>
+<p>We do not sell personal information. Service providers may process information as necessary to operate the application. Information is retained only as reasonably necessary for the stated purposes or as required by law.</p>
+<p>Subject to applicable law, you may request access, correction, deletion, or restriction of processing.</p>
+
+<h2>Contact</h2>
+<p>Privacy inquiries: <a href="mailto:npt170289@gmail.com">npt170289@gmail.com</a></p>
+
+<p class="back"><a href="index.html">&larr; Back to Lumia 909</a></p>
+<div class="footer">&copy; 2026 Lumia 909 — Garden Lounge.</div>
 </div>
 </div>
 </body>
