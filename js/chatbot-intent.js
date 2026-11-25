@@ -10,7 +10,7 @@
  *     hotline: "0971363121",
  *     address: "303 Phạm Văn Đồng, P. Hạnh Thông, Gò Vấp",
  *     hours: "17:00 - 03:00",
- *     totalDishes: 308,
+ *     totalDishes: __menu.length, // tự đếm từ menu, không ghi cứng
  *     categories: [{ name: "Gà Tre", count: 9 }, ...],
  *     menu: [{ name: "Gà Tre Hấp Lá Chanh", price: "319K", category: "Gà Tre" }, ...],
  *     piReply: "...",        // câu trả lời riêng cho Pi/thanh toán (từng quán khác nhau)

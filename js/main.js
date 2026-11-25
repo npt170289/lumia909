@@ -1,5 +1,5 @@
 /* Lumia 909 — Garden Lounge | plain-JS app (no framework, no build step).
- * Renders header, hero, NOTTE clips, booking form, menu (242 dishes / 19 groups),
+ * Renders header, hero, NOTTE clips, booking form, menu (19 groups),
  * gallery, footer and the 3-tier chatbot modal. Data comes from data/menu.json. */
 (function () {
   "use strict";
@@ -11,7 +11,6 @@
   var HOURS = "17:00 - 03:00";
   var MAPS_URL = "https://www.google.com/maps/search/?api=1&query=909+Tr%E1%BA%A7n+H%C6%B0ng+%C4%90%E1%BA%A1o+Qu%E1%BA%ADn+5+TP.HCM";
   var PI_IFRAME_URL = "https://lumiarz2822.pinet.com";
-  var TOTAL_DISHES = 242;
 
   var root = document.getElementById("root");
   var menuData = null;
@@ -262,7 +261,7 @@ function getChatCid() {
   function renderMenu() {
     var sec = el(
       '<section class="wrap" id="menu"><div class="sec-head">' +
-        '<div><h2>MENU ' + TOTAL_DISHES + '</h2><div class="sec-sub">菜单 • 242 MÓN</div><div class="grad-div"></div></div>' +
+        '<div><h2>MENU</h2><div class="sec-sub">菜单</div><div class="grad-div"></div></div>' +
         '<span class="sec-note" style="display:none;" id="menu-right-label">● BEER TOWER - COCKTAIL 3L - RƯỢU MẠNH</span>' +
       '</div>' +
       '<div class="tabs" id="menu-tabs"></div>' +
@@ -383,7 +382,7 @@ function getChatCid() {
   }
 
   function T(q) {
-    // Chatbot thông minh (intent + tra menu thật). Build 1 lần từ menuData (242 món).
+    // Chatbot thông minh (intent + tra menu thật). Build 1 lần từ menuData (tự đếm từ menu).
     if (!window.__LumiaSmartBot && window.ChatbotIntent && menuData) {
       var __menu = [];
       var __cats = [];
@@ -399,7 +398,7 @@ function getChatCid() {
         hotline: HOTLINE,
         address: ADDRESS_FULL,
         hours: HOURS,
-        totalDishes: TOTAL_DISHES,
+        totalDishes: __menu.length,
         categories: __cats,
         menu: __menu,
         piReply: "Dạ Pi Network: đặt bàn VIP được Tặng 200 Pi ạ. Thanh toán tại quán chỉ dùng VND. Pi chỉ là ưu đãi, không phải thanh toán ạ.",
@@ -444,7 +443,7 @@ function getChatCid() {
     var input = document.getElementById("chat-input");
     var chips = document.getElementById("chat-chips");
     var inputRow = modal.querySelector(".chat-input-row");
-    var greeting = "Các bạn cần hỗ trợ gì ạ? Gõ \"menu\" để xem " + TOTAL_DISHES + " món, \"đặt bàn\" để đặt VIP, \"địa chỉ\" để xem thông tin.\nHow can I help? Type \"menu\" / \"booking\" / \"address\".\n需要什么帮助？输入\"menu\" / \"booking\" / \"address\"。";
+    var greeting = "Các bạn cần hỗ trợ gì ạ? Ẩm thực đa dạng món Á-Âu chuẩn vị. Gõ \"menu\" để xem thực đơn, \"đặt bàn\" để đặt VIP, \"địa chỉ\" để xem thông tin.\nHow can I help? Diverse Asian-European cuisine, authentic flavors. Type \"menu\" / \"booking\" / \"address\".\n需要什么帮助？亚欧美食，种类丰富，地道风味。输入\"menu\" / \"booking\" / \"address\"。";
 
     function addMsg(text, who) {
       var m = document.createElement("div");
