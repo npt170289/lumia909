@@ -43,13 +43,6 @@ h2 { font-size: 16px; font-weight: 800; letter-spacing: .02em; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.6s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
 
-/* garden-flycam: approved Lumia/Garden effect — zoom 1.08 max + diagonal drift */
-@keyframes garden-flycam {
-  from { transform: scale(1) translate(0, 0); }
-  to { transform: scale(1.08) translate(12px, -22px); }
-}
-.flycam { animation: garden-flycam 8s ease-in-out infinite alternate; }
-
 /* ---------- header ---------- */
 header.site { position: sticky; top: 0; z-index: 50; background: rgba(5,8,15,.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,.08); padding-top: var(--safe-area-inset-top); }
 .header-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 64px; }

@@ -329,9 +329,8 @@ function getChatCid() {
       { src: "public/images/piclumia08.jpg", alt: "Lumia 909 - Khoanh khac 08" },
       { src: "public/images/piclumia10.jpg", alt: "Lumia 909 - Khoanh khac 10" }
     ];
-    var items = photos.map(function (p, i) {
-      var cls = (i + 1) % 2 === 0 ? " flycam" : "";
-      return '<div class="gallery-item"><img class="' + cls.trim() + '" src="' + p.src + '" alt="' + esc(p.alt) + '" loading="lazy"></div>';
+    var items = photos.map(function (p) {
+      return '<div class="gallery-item"><img src="' + p.src + '" alt="' + esc(p.alt) + '" loading="lazy"></div>';
     }).join("");
     return el(
       '<section class="wrap"><div class="sec-head">' +
