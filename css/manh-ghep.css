@@ -1,0 +1,58 @@
+/* Mảnh ghép — tile-assembly photo reveal (Lumia 909 gallery only).
+ * Each gallery photo assembles from tiles that fly in from small random
+ * offsets + fade in, staggered, ~0.9–1.0s total, ease-out cubic.
+ * The tiles live in an overlay (.mg-tiles) on top of the real <img>:
+ * while armed the base image is hidden (opacity 0) and its .flycam drift
+ * is paused, so the swap at the end is seamless and the flycam continues
+ * afterwards from scale(1). No image files, no other feature touched.
+ * JS-off / no IntersectionObserver / prefers-reduced-motion: the .mg-armed
+ * class is never added, so the photo simply shows normally. */
+
+.gallery-item.mg-armed > img { opacity: 0; }
+.gallery-item.mg-armed > img.flycam { animation: none; }
+
+.mg-tiles {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.mg-tile {
+  position: absolute;
+  left: calc(var(--col) * 100% / var(--cols));
+  top: calc(var(--row) * 100% / var(--rows));
+  width: calc(100% / var(--cols));
+  height: calc(100% / var(--rows));
+  overflow: hidden;
+  opacity: 0;
+  transform: translate(var(--dx, 0px), var(--dy, 0px)) scale(0.96);
+  transition:
+    opacity 0.28s ease-out,
+    transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: var(--d, 0ms);
+  will-change: transform, opacity;
+}
+
+/* Inner clone is sized to the whole gallery item, offset per tile, so its
+ * object-fit:cover crop matches the base <img> pixel-for-pixel. */
+.mg-tile img {
+  position: absolute;
+  left: calc(var(--col) * -100%);
+  top: calc(var(--row) * -100%);
+  width: calc(var(--cols) * 100%);
+  height: calc(var(--rows) * 100%);
+  max-width: none;
+  object-fit: cover;
+}
+
+.mg-tiles.mg-play .mg-tile {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mg-tiles { display: none; }
+  .gallery-item.mg-armed > img { opacity: 1; }
+  .gallery-item.mg-armed > img.flycam { animation: garden-flycam 8s ease-in-out infinite alternate; }
+}
